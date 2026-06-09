@@ -1,4 +1,43 @@
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Home, Zap, Layers, Users } from 'lucide-react'
+
+const menuItems = [
+  { icon: <Home className="h-4 w-4" />, label: "Home", href: "#", gradient: "radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(37,99,235,0.06) 50%, rgba(29,78,216,0) 100%)", iconColor: "group-hover:text-blue-500" },
+  { icon: <Zap className="h-4 w-4" />, label: "Features", href: "#features", gradient: "radial-gradient(circle, rgba(249,115,22,0.15) 0%, rgba(234,88,12,0.06) 50%, rgba(194,65,12,0) 100%)", iconColor: "group-hover:text-orange-500" },
+  { icon: <Layers className="h-4 w-4" />, label: "Why Us", href: "#why-us", gradient: "radial-gradient(circle, rgba(147,51,234,0.15) 0%, rgba(126,34,206,0.06) 50%, rgba(88,28,135,0) 100%)", iconColor: "group-hover:text-purple-500" },
+  { icon: <Users className="h-4 w-4" />, label: "Talent Pool", href: "/candidates", gradient: "radial-gradient(circle, rgba(34,197,94,0.15) 0%, rgba(22,163,74,0.06) 50%, rgba(21,128,61,0) 100%)", iconColor: "group-hover:text-emerald-500" },
+]
+
+const itemVariants = {
+  initial: { rotateX: 0, opacity: 1 },
+  hover: { rotateX: -90, opacity: 0 },
+}
+
+const backVariants = {
+  initial: { rotateX: 90, opacity: 0 },
+  hover: { rotateX: 0, opacity: 1 },
+}
+
+const glowVariants = {
+  initial: { opacity: 0, scale: 0.8 },
+  hover: {
+    opacity: 1,
+    scale: 2,
+    transition: {
+      opacity: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+      scale: { duration: 0.5, type: "spring", stiffness: 300, damping: 25 },
+    },
+  },
+}
+
+const sharedTransition = {
+  type: "spring",
+  stiffness: 100,
+  damping: 20,
+  duration: 0.5,
+}
+
 
 const features = [
   { icon: 'psychology', title: 'AI Scoring', desc: 'Advanced neural networks evaluate candidate fit based on multi-dimensional data points beyond the resume.' },
@@ -22,27 +61,102 @@ export default function LandingPage() {
   return (
     <div className="bg-background-dark text-slate-100 min-h-screen selection:bg-primary/30">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass-nav border-b border-border-dark">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-1">
+      <div className="fixed top-4 left-0 right-0 z-50 px-6 max-w-5xl mx-auto">
+        <nav
+          className="w-full px-6 py-3.5 rounded-full
+          bg-slate-950/40 backdrop-blur-xl 
+          border border-border-dark 
+          shadow-2xl flex flex-row items-center justify-between gap-4"
+        >
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-1 flex-shrink-0">
             <span className="text-xl font-black tracking-tight text-white">Quick</span>
             <span className="text-xl font-black tracking-tight text-primary">Hire</span>
           </Link>
-          <div className="hidden md:flex items-center gap-10">
-            {['Product', 'Features', 'Pricing', 'About'].map((item) => (
-              <a key={item} href="#" className="text-sm font-medium text-slate-400 hover:text-primary transition-colors">{item}</a>
-            ))}
-          </div>
-          <div className="flex items-center gap-4">
-            <Link to="/auth" className="px-6 py-2.5 text-sm font-bold text-white hover:text-primary transition-colors">Login</Link>
-            <Link to="/auth?mode=signup" className="bg-primary text-background-dark px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all">Get Started</Link>
-          </div>
-        </div>
-      </nav>
 
-      <main className="relative pt-20 overflow-hidden">
+          {/* Hover Gradient Menu */}
+          <ul className="hidden md:flex items-center gap-1 md:gap-3 relative z-10">
+            {menuItems.map((item) => (
+              <li key={item.label} className="relative">
+                <motion.div
+                  className="block rounded-xl overflow-visible group relative"
+                  style={{ perspective: "600px" }}
+                  whileHover="hover"
+                  initial="initial"
+                >
+                  {/* Per-item glow */}
+                  <motion.div
+                    className="absolute inset-0 z-0 pointer-events-none rounded-xl"
+                    variants={glowVariants}
+                    style={{
+                      background: item.gradient,
+                      opacity: 0,
+                    }}
+                  />
+                  {/* Front-facing */}
+                  <motion.a
+                    href={item.href}
+                    className="flex items-center gap-2 
+                    px-4 py-2 relative z-10 
+                    bg-transparent text-slate-400 
+                    group-hover:text-white 
+                    transition-colors rounded-xl text-xs md:text-sm font-medium"
+                    variants={itemVariants}
+                    transition={sharedTransition}
+                    style={{
+                      transformStyle: "preserve-3d",
+                      transformOrigin: "center bottom"
+                    }}
+                  >
+                    <span className={`transition-colors duration-300 ${item.iconColor}`}>
+                      {item.icon}
+                    </span>
+                    <span className="font-semibold">{item.label}</span>
+                  </motion.a>
+                  {/* Back-facing */}
+                  <motion.a
+                    href={item.href}
+                    className="flex items-center gap-2 
+                    px-4 py-2 absolute inset-0 z-10 
+                    bg-transparent text-slate-400 
+                    group-hover:text-white 
+                    transition-colors rounded-xl text-xs md:text-sm font-medium"
+                    variants={backVariants}
+                    transition={sharedTransition}
+                    style={{
+                      transformStyle: "preserve-3d",
+                      transformOrigin: "center top",
+                      transform: "rotateX(90deg)"
+                    }}
+                  >
+                    <span className={`transition-colors duration-300 ${item.iconColor}`}>
+                      {item.icon}
+                    </span>
+                    <span className="font-semibold">{item.label}</span>
+                  </motion.a>
+                </motion.div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <Link to="/auth" className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">
+              Login
+            </Link>
+            <Link
+              to="/auth?mode=signup"
+              className="bg-primary text-background-dark px-5 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all animate-glow"
+            >
+              Get Started
+            </Link>
+          </div>
+        </nav>
+      </div>
+
+      <main className="relative overflow-hidden">
         {/* Hero */}
-        <section className="relative min-h-[90vh] flex items-center justify-center px-6 mesh-gradient">
+        <section className="relative min-h-[100vh] flex items-center justify-center px-6 pt-28 pb-16 mesh-gradient">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-1/4 left-10 size-32 bg-primary/20 rounded-full blur-3xl" />
             <div className="absolute bottom-1/4 right-10 size-48 bg-blue-600/20 rounded-full blur-3xl" />
@@ -82,7 +196,7 @@ export default function LandingPage() {
         </section>
 
         {/* Features */}
-        <section className="max-w-7xl mx-auto px-6 py-24">
+        <section id="features" className="max-w-7xl mx-auto px-6 py-24">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl font-bold text-white tracking-tight">Everything you need to hire better</h2>
             <p className="text-slate-400 max-w-xl mx-auto">Stop wasting time on manual sourcing. Let AI do the heavy lifting.</p>
@@ -101,7 +215,7 @@ export default function LandingPage() {
         </section>
 
         {/* How It Works */}
-        <section className="max-w-7xl mx-auto px-6 py-24 space-y-32">
+        <section id="why-us" className="max-w-7xl mx-auto px-6 py-24 space-y-32">
           <div className="text-center space-y-4">
             <h2 className="text-4xl font-bold text-white tracking-tight">How It Works</h2>
             <div className="h-1 w-20 bg-primary mx-auto rounded-full" />

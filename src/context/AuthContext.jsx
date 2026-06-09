@@ -1,48 +1,147 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState({
-    email: 'recruiter@quickhire.ai',
-    user_metadata: {
-      full_name: 'Jordan Lee',
-      role: 'recruiter'
-    }
-  })
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    // IMPORTANT: onAuthStateChange callbacks must NOT be async themselves —
+    // Supabase ignores the returned Promise, so any uncaught rejection inside
+    // an async callback silently prevents setLoading(false) from running and
+    // leaves the app stuck on the loader. We use an inner IIFE with try/finally
+    // to guarantee setLoading(false) always fires.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Run all async logic in a non-awaited inner function so the outer
+      // callback stays synchronous (Supabase requirement).
+      ;(async () => {
+        try {
+          const currentUser = session?.user ?? null
+
+          if (currentUser) {
+            // Always fetch and attach the profile, regardless of event type
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', currentUser.id)
+              .maybeSingle()
+
+            if (profile) {
+              // Merge DB profile data into user metadata.
+              // KEY FIX: don't overwrite a valid existing role with null —
+              // the profile row may exist (from signUp upsert) before the user
+              // has picked a role on SelectRolePage, leaving profile.role = null.
+              currentUser.user_metadata = {
+                ...currentUser.user_metadata,
+                full_name: profile.full_name || currentUser.user_metadata?.full_name,
+                role: profile.role || currentUser.user_metadata?.role,
+              }
+            } else if (event === 'SIGNED_IN') {
+              // New OAuth user — create their profile
+              const oauthRole = localStorage.getItem('oauth_role') || null
+              localStorage.removeItem('oauth_role')
+              const fullName =
+                currentUser.user_metadata?.full_name ||
+                currentUser.user_metadata?.name ||
+                'User'
+
+              const { error: insertError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: currentUser.id,
+                  email: currentUser.email,
+                  full_name: fullName,
+                  role: oauthRole,
+                })
+
+              if (insertError) {
+                console.error('Error creating profile on SIGNED_IN:', insertError)
+              }
+
+              currentUser.user_metadata = {
+                ...currentUser.user_metadata,
+                full_name: fullName,
+                role: oauthRole,
+              }
+            }
+
+            setUser({ ...currentUser })
+          } else {
+            setUser(null)
+          }
+        } catch (err) {
+          console.error('AuthContext: error in onAuthStateChange handler:', err)
+          setUser(null)
+        } finally {
+          // Always clear the loading gate — this is the line that was
+          // silently skipped whenever an async error occurred above.
+          setLoading(false)
+        }
+      })()
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
   const signUp = async (email, password, metadata = {}) => {
-    setUser({
-      email: email || 'recruiter@quickhire.ai',
-      user_metadata: {
-        full_name: metadata.full_name || 'Jordan Lee',
-        role: metadata.role || 'recruiter'
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: metadata.full_name,
+          role: metadata.role || 'recruiter',
+        }
       }
     })
-    return { data: { user: true }, error: null }
+
+    if (!error && data?.user) {
+      // Create a profile record immediately to bypass triggers wait
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: data.user.id,
+          email: email,
+          full_name: metadata.full_name,
+          role: metadata.role || 'recruiter',
+        })
+      if (profileError) console.error('Error creating profile in signUp:', profileError)
+    }
+
+    return { data, error }
   }
 
   const signIn = async (email, password) => {
-    setUser({
-      email: email || 'recruiter@quickhire.ai',
-      user_metadata: {
-        full_name: 'Jordan Lee',
-        role: 'recruiter'
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    return { data, error }
+  }
+
+  const signInWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth`
       }
     })
-    return { data: { user: true }, error: null }
+    return { data, error }
   }
 
   const signOut = async () => {
+    const { error } = await supabase.auth.signOut()
     setUser(null)
     navigate('/')
-    return { error: null }
+    return { error }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading: false, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )

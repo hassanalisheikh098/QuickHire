@@ -6,10 +6,27 @@ const AVATAR_COLORS = [
   'from-purple-500 to-pink-600',
   'from-orange-400 to-red-500',
   'from-cyan-400 to-blue-500',
+  'from-rose-500 to-orange-500',
+  'from-violet-500 to-purple-600',
+  'from-teal-400 to-cyan-600',
+  'from-amber-400 to-yellow-600',
 ]
 
+// Works with both numeric IDs and UUID strings from Supabase
+function hashId(id) {
+  const str = String(id)
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 31 + str.charCodeAt(i)) >>> 0
+  }
+  return hash
+}
+
 export default function CandidateCard({ candidate, onSave, saved = false }) {
-  const colorClass = AVATAR_COLORS[candidate.id % AVATAR_COLORS.length]
+  // Use stored gradient if available (from DB), otherwise derive from id hash
+  const colorClass =
+    candidate.gradient ||
+    AVATAR_COLORS[hashId(candidate.id) % AVATAR_COLORS.length]
 
   return (
     <div className="bg-card-dark border border-border-dark rounded-xl p-6 relative hover:scale-[1.01] hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/30 transition-all group">

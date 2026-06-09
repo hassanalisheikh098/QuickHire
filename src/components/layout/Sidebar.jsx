@@ -1,11 +1,18 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
-const navItems = [
+const recruiterNavItems = [
   { to: '/dashboard', icon: 'bookmark', label: 'Saved Candidates', key: 'saved' },
   { to: '/search', icon: 'manage_search', label: 'AI Search', key: 'search' },
   { to: '/candidates', icon: 'group', label: 'Browse Talent', key: 'browse' },
   { to: '/messages', icon: 'chat_bubble', label: 'Messages', key: 'messages', badge: '12' },
+  { to: '/settings', icon: 'settings', label: 'Settings', key: 'settings' },
+]
+
+const candidateNavItems = [
+  { to: '/dashboard', icon: 'dashboard', label: 'My Dashboard', key: 'saved' },
+  { to: '/onboarding', icon: 'upload_file', label: 'Update Resume', key: 'onboarding' },
+  { to: '/messages', icon: 'chat_bubble', label: 'Messages', key: 'messages' },
   { to: '/settings', icon: 'settings', label: 'Settings', key: 'settings' },
 ]
 
@@ -17,6 +24,9 @@ export default function Sidebar({ active }) {
     await signOut()
     navigate('/')
   }
+
+  const userRole = user?.user_metadata?.role || 'recruiter'
+  const navItems = userRole === 'candidate' ? candidateNavItems : recruiterNavItems
 
   return (
     <aside className="w-64 flex-shrink-0 bg-sidebar-dark border-r border-border-dark flex flex-col h-full">
@@ -30,7 +40,9 @@ export default function Sidebar({ active }) {
               <span className="text-base font-black tracking-tight text-white">Quick</span>
               <span className="text-base font-black tracking-tight text-primary">Hire</span>
             </div>
-            <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">AI Discovery</p>
+            <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">
+              {userRole === 'candidate' ? 'Talent Space' : 'AI Discovery'}
+            </p>
           </div>
         </Link>
 
@@ -58,24 +70,26 @@ export default function Sidebar({ active }) {
       </div>
 
       <div className="mt-auto p-6 border-t border-border-dark">
-        <div className="bg-card-dark/50 rounded-xl p-4 border border-border-dark mb-4">
-          <p className="text-xs text-slate-500 font-medium mb-1">Current Plan</p>
-          <p className="text-sm text-white font-bold mb-3">Enterprise Pro</p>
-          <div className="w-full bg-border-dark h-1.5 rounded-full overflow-hidden">
-            <div className="bg-primary h-full w-3/4"></div>
+        {userRole !== 'candidate' && (
+          <div className="bg-card-dark/50 rounded-xl p-4 border border-border-dark mb-4">
+            <p className="text-xs text-slate-500 font-medium mb-1">Current Plan</p>
+            <p className="text-sm text-white font-bold mb-3">Enterprise Pro</p>
+            <div className="w-full bg-border-dark h-1.5 rounded-full overflow-hidden">
+              <div className="bg-primary h-full w-3/4"></div>
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2">750 / 1000 searches left</p>
           </div>
-          <p className="text-[10px] text-slate-500 mt-2">750 / 1000 searches left</p>
-        </div>
+        )}
 
         {user ? (
           <div className="space-y-3">
             <div className="flex items-center gap-2 px-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-emerald-600 flex items-center justify-center text-background-dark font-bold text-sm flex-shrink-0">
-                J
+                {(user.user_metadata?.full_name || user.email || 'U').charAt(0).toUpperCase()}
               </div>
               <div className="truncate flex flex-col">
-                <span className="text-white text-xs font-bold truncate">Jordan Lee</span>
-                <span className="text-slate-500 text-[10px] truncate">recruiter@quickhire.ai</span>
+                <span className="text-white text-xs font-bold truncate">{user.user_metadata?.full_name || 'QuickHire User'}</span>
+                <span className="text-slate-500 text-[10px] truncate">{user.email}</span>
               </div>
             </div>
             <button

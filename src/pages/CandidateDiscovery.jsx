@@ -3,18 +3,8 @@ import { Link } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import CandidateCard from '../components/CandidateCard'
 import { useToast } from '../context/ToastContext'
-
-const MOCK_CANDIDATES = [
-  { id: 1, name: 'Alex Rivera', title: 'Senior Frontend Engineer', ai_score: 98, skills: ['React', 'TypeScript', 'GraphQL', 'Next.js', 'Vite'], location: 'San Francisco, CA', bio: 'I build beautiful, performant interfaces that users love. 8+ years shipping production React applications for companies ranging from early-stage startups to Fortune 500s.', experiences: [{ company: 'Stripe', role: 'Senior Engineer', from: '2022-01', current: true, description: 'Led frontend architecture for Stripe Dashboard, improving performance by 40%.' }, { company: 'Airbnb', role: 'Software Engineer', from: '2019-06', to: '2021-12', description: 'Built core booking flow components serving 150M+ users.' }], email: 'alex@example.com', github: 'github.com/alexrivera', gradient: 'from-primary to-emerald-600' },
-  { id: 2, name: 'Sarah Jenkins', title: 'Machine Learning Engineer', ai_score: 96, skills: ['Python', 'PyTorch', 'MLOps', 'TensorFlow', 'Kubernetes', 'GCP'], location: 'New York, NY', bio: 'Passionate about turning data into impact. I build and deploy ML systems at scale.', experiences: [{ company: 'OpenAI', role: 'ML Engineer', from: '2023-03', current: true, description: 'Working on model evaluation infrastructure and safety tooling.' }, { company: 'Google Brain', role: 'Research Engineer', from: '2020-08', to: '2023-02', description: 'Published 3 papers on efficient transformers.' }], email: 'sarah@example.com', github: 'github.com/sarahjenkins', gradient: 'from-blue-500 to-indigo-600' },
-  { id: 3, name: 'Michael Zhang', title: 'Backend Architect', ai_score: 94, skills: ['Go', 'Kubernetes', 'gRPC', 'Rust', 'PostgreSQL', 'Redis'], location: 'Austin, TX', bio: 'Systems thinker who loves designing distributed backends that are both highly available and a joy to maintain.', experiences: [{ company: 'Uber', role: 'Staff Engineer', from: '2021-04', current: true, description: 'Owns the real-time dispatch infrastructure handling 25M daily trips.' }], email: 'michael@example.com', github: 'github.com/michaelzhang', gradient: 'from-purple-500 to-pink-600' },
-  { id: 4, name: 'Elena Rodriguez', title: 'Fullstack Developer', ai_score: 92, skills: ['Next.js', 'PostgreSQL', 'AWS', 'TypeScript', 'Prisma', 'tRPC'], location: 'Miami, FL', bio: "Full-stack engineer who cares deeply about developer experience.", experiences: [{ company: 'Vercel', role: 'Developer Advocate + Engineer', from: '2022-06', current: true, description: 'Building OSS integrations and demonstrating Next.js best practices.' }], email: 'elena@example.com', github: 'github.com/elenarodriguez', gradient: 'from-orange-400 to-red-500' },
-  { id: 5, name: 'David Smith', title: 'DevOps Engineer', ai_score: 91, skills: ['Terraform', 'Docker', 'CI/CD', 'Kubernetes', 'AWS', 'Python'], location: 'Seattle, WA', bio: 'DevOps & Platform engineer with a focus on automation, infrastructure as code, and cloud native architectures.', experiences: [{ company: 'HashiCorp', role: 'DevOps Architect', from: '2021-08', current: true, description: 'Designed Terraform provider automation pipeline.' }, { company: 'Netflix', role: 'Senior Platform Engineer', from: '2018-02', to: '2021-07', description: 'Managed container deployment pipelines for thousands of microservices.' }], email: 'david@example.com', github: 'github.com/davidsmith', gradient: 'from-emerald-500 to-teal-600' },
-  { id: 6, name: 'Aisha Khan', title: 'Cloud Solutions Architect', ai_score: 89, skills: ['Azure', 'Python', 'Networking', 'Terraform', 'Docker', 'Kubernetes'], location: 'Chicago, IL', bio: 'Cloud architect specializing in enterprise migrations, hybrid-cloud setups, and secure networking architectures.', experiences: [{ company: 'Microsoft', role: 'Solutions Architect', from: '2022-05', current: true, description: 'Advised Fortune 100 partners on large scale migrations to Azure.' }], email: 'aisha@example.com', github: 'github.com/aishakhan', gradient: 'from-cyan-500 to-blue-600' },
-  { id: 7, name: 'James Park', title: 'iOS Developer', ai_score: 87, skills: ['Swift', 'SwiftUI', 'Xcode', 'Objective-C', 'Combine', 'Cocoapods'], location: 'Los Angeles, CA', bio: 'Mobile engineer with a passion for clean UI and smooth interactive animations. Native iOS specialist.', experiences: [{ company: 'Apple', role: 'iOS Engineer', from: '2023-01', current: true, description: 'Working on native iOS application components for Apple Store app.' }], email: 'james@example.com', github: 'github.com/jamespark', gradient: 'from-orange-500 to-pink-600' },
-  { id: 8, name: 'Priya Patel', title: 'Data Engineer', ai_score: 86, skills: ['Spark', 'Kafka', 'dbt', 'SQL', 'Python', 'Snowflake'], location: 'Boston, MA', bio: 'Data pipelines engineer with expertise in real-time data streaming and robust data warehouses.', experiences: [{ company: 'Snowflake', role: 'Senior Data Engineer', from: '2022-10', current: true, description: 'Optimized real-time ingestion pipelines scaling to petabytes of data.' }], email: 'priya@example.com', github: 'github.com/priyapatel', gradient: 'from-purple-500 to-indigo-600' },
-  { id: 9, name: 'Carlos Mendez', title: 'Security Engineer', ai_score: 85, skills: ['Pentesting', 'AWS', 'Zero Trust', 'Python', 'Linux', 'OAuth'], location: 'Denver, CO', bio: 'Security professional focusing on application security, penetration testing, and security automation.', experiences: [{ company: 'CrowdStrike', role: 'Security Analyst', from: '2023-06', current: true, description: 'Conducted penetration tests and security architecture reviews.' }], email: 'carlos@example.com', github: 'github.com/carlosmendez', gradient: 'from-red-500 to-rose-600' },
-]
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 
 const SKILL_OPTIONS = ['React', 'TypeScript', 'Python', 'Go', 'AWS', 'Kubernetes', 'Swift', 'Next.js', 'Docker', 'Terraform']
 const EXPERIENCE_LEVELS = ['Junior (0–2 yrs)', 'Mid (3–5 yrs)', 'Senior (6–10 yrs)', 'Lead (10+ yrs)']
@@ -22,6 +12,7 @@ const SORT_OPTIONS = ['AI Score ↓', 'AI Score ↑', 'Name A–Z']
 
 export default function CandidateDiscovery() {
   const { showToast } = useToast()
+  const { user } = useAuth()
   const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -31,31 +22,86 @@ export default function CandidateDiscovery() {
   const [selectedSkills, setSelectedSkills] = useState([])
   const [selectedExp, setSelectedExp] = useState(null)
   const [sortBy, setSortBy] = useState('AI Score ↓')
-  const [savedIds, setSavedIds] = useState(new Set([1, 2, 3]))
+  const [savedIds, setSavedIds] = useState(new Set())
   const perPage = 6
 
   useEffect(() => {
-    setLoading(true)
-    const timer = setTimeout(() => {
-      setCandidates(MOCK_CANDIDATES)
-      setLoading(false)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [])
+    const fetchData = async () => {
+      setLoading(true)
+      
+      // Fetch candidates from Supabase
+      const { data: candData, error: candError } = await supabase
+        .from('candidates')
+        .select('*')
+      
+      if (candData) {
+        setCandidates(candData)
+      } else {
+        console.error('Error fetching candidates:', candError)
+      }
 
-  const handleSave = (candidate) => {
+      // Fetch saved recruiter shortlists if logged in
+      if (user) {
+        const { data: savedData, error: savedError } = await supabase
+          .from('saved_candidates')
+          .select('candidate_id')
+          .eq('recruiter_id', user.id)
+        
+        if (savedData) {
+          setSavedIds(new Set(savedData.map(item => item.candidate_id)))
+        } else {
+          console.error('Error fetching saved IDs:', savedError)
+        }
+      }
+
+      setLoading(false)
+    }
+
+    fetchData()
+  }, [user])
+
+  const handleSave = async (candidate) => {
+    if (!user) {
+      showToast("Please log in to save candidates")
+      return
+    }
     const isSaved = savedIds.has(candidate.id)
-    setSavedIds((prev) => {
-      const next = new Set(prev)
-      if (isSaved) {
-        next.delete(candidate.id)
+    if (isSaved) {
+      const { error } = await supabase
+        .from('saved_candidates')
+        .delete()
+        .eq('recruiter_id', user.id)
+        .eq('candidate_id', candidate.id)
+      
+      if (!error) {
+        setSavedIds((prev) => {
+          const next = new Set(prev)
+          next.delete(candidate.id)
+          return next
+        })
         showToast("Removed from shortlist")
       } else {
-        next.add(candidate.id)
-        showToast("Saved to shortlist ✓")
+        showToast("Error removing from shortlist")
       }
-      return next
-    })
+    } else {
+      const { error } = await supabase
+        .from('saved_candidates')
+        .insert({
+          recruiter_id: user.id,
+          candidate_id: candidate.id
+        })
+      
+      if (!error) {
+        setSavedIds((prev) => {
+          const next = new Set(prev)
+          next.add(candidate.id)
+          return next
+        })
+        showToast("Saved to shortlist ✓")
+      } else {
+        showToast("Error saving to shortlist")
+      }
+    }
   }
 
   const filtered = candidates

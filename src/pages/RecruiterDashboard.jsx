@@ -4,40 +4,88 @@ import Sidebar from '../components/layout/Sidebar'
 import CandidateCard from '../components/CandidateCard'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
-
-const MOCK_CANDIDATES = [
-  { id: 1, name: 'Alex Rivera', title: 'Senior Frontend Engineer', ai_score: 98, skills: ['React', 'TypeScript', 'GraphQL', 'Next.js', 'Vite'], location: 'San Francisco, CA', bio: 'I build beautiful, performant interfaces that users love. 8+ years shipping production React applications for companies ranging from early-stage startups to Fortune 500s.', experiences: [{ company: 'Stripe', role: 'Senior Engineer', from: '2022-01', current: true, description: 'Led frontend architecture for Stripe Dashboard, improving performance by 40%.' }, { company: 'Airbnb', role: 'Software Engineer', from: '2019-06', to: '2021-12', description: 'Built core booking flow components serving 150M+ users.' }], email: 'alex@example.com', github: 'github.com/alexrivera', gradient: 'from-primary to-emerald-600' },
-  { id: 2, name: 'Sarah Jenkins', title: 'Machine Learning Engineer', ai_score: 96, skills: ['Python', 'PyTorch', 'MLOps', 'TensorFlow', 'Kubernetes', 'GCP'], location: 'New York, NY', bio: 'Passionate about turning data into impact. I build and deploy ML systems at scale.', experiences: [{ company: 'OpenAI', role: 'ML Engineer', from: '2023-03', current: true, description: 'Working on model evaluation infrastructure and safety tooling.' }, { company: 'Google Brain', role: 'Research Engineer', from: '2020-08', to: '2023-02', description: 'Published 3 papers on efficient transformers.' }], email: 'sarah@example.com', github: 'github.com/sarahjenkins', gradient: 'from-blue-500 to-indigo-600' },
-  { id: 3, name: 'Michael Zhang', title: 'Backend Architect', ai_score: 94, skills: ['Go', 'Kubernetes', 'gRPC', 'Rust', 'PostgreSQL', 'Redis'], location: 'Austin, TX', bio: 'Systems thinker who loves designing distributed backends that are both highly available and a joy to maintain.', experiences: [{ company: 'Uber', role: 'Staff Engineer', from: '2021-04', current: true, description: 'Owns the real-time dispatch infrastructure handling 25M daily trips.' }], email: 'michael@example.com', github: 'github.com/michaelzhang', gradient: 'from-purple-500 to-pink-600' },
-]
-
-const MOCK_HISTORY = [
-  { id: 1, query: 'Senior React engineer with GraphQL', results: 12, created_at: '2025-05-29' },
-  { id: 2, query: 'ML engineers fintech experience', results: 7, created_at: '2025-05-28' },
-  { id: 3, query: 'Python backend distributed systems', results: 18, created_at: '2025-05-27' },
-  { id: 4, query: 'iOS Swift developer 3+ years', results: 5, created_at: '2025-05-26' },
-]
+import { supabase } from '../lib/supabase'
 
 export default function RecruiterDashboard() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const [saved, setSaved] = useState([])
   const [history, setHistory] = useState([])
+  const [candidateProfile, setCandidateProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fake loading for 300ms
-    const timer = setTimeout(() => {
-      setSaved(MOCK_CANDIDATES)
-      setHistory(MOCK_HISTORY)
-      setLoading(false)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [])
+    const fetchData = async () => {
+      if (!user) return
+      setLoading(true)
 
-  const handleUnsave = (candidate) => {
-    setSaved((prev) => prev.filter((c) => c.id !== candidate.id))
-    showToast("Removed from shortlist")
+      const userRole = user.user_metadata?.role || 'recruiter'
+      if (userRole === 'candidate') {
+        const { data: profile } = await supabase
+          .from('candidates')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle()
+        
+        setCandidateProfile(profile)
+        setLoading(false)
+        return
+      }
+
+      // Fetch saved candidates joined with candidates profiles
+      const { data: savedData, error: savedError } = await supabase
+        .from('saved_candidates')
+        .select(`
+          candidate_id,
+          candidates (*)
+        `)
+        .eq('recruiter_id', user.id)
+      
+      if (savedData) {
+        setSaved(savedData.map(item => item.candidates).filter(Boolean))
+      } else {
+        console.error('Error fetching shortlists:', savedError)
+      }
+
+      // Fetch search history log
+      const { data: histData, error: histError } = await supabase
+        .from('search_history')
+        .select('*')
+        .eq('recruiter_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(6)
+      
+      if (histData) {
+        setHistory(histData.map(item => ({
+          id: item.id,
+          query: item.query,
+          results: item.results_count,
+          created_at: new Date(item.created_at).toISOString().slice(0, 10)
+        })))
+      } else {
+        console.error('Error fetching search history:', histError)
+      }
+
+      setLoading(false)
+    }
+
+    fetchData()
+  }, [user])
+
+  const handleUnsave = async (candidate) => {
+    if (!user) return
+    const { error } = await supabase
+      .from('saved_candidates')
+      .delete()
+      .eq('recruiter_id', user.id)
+      .eq('candidate_id', candidate.id)
+    
+    if (!error) {
+      setSaved((prev) => prev.filter((c) => c.id !== candidate.id))
+      showToast("Removed from shortlist")
+    } else {
+      showToast("Error removing from shortlist")
+    }
   }
 
   const STATS = [
@@ -46,6 +94,133 @@ export default function RecruiterDashboard() {
     { label: 'Active Roles', icon: 'work', color: 'text-purple-400', bg: 'bg-purple-400/10', value: 3 },
     { label: 'Match Rate', icon: 'verified', color: 'text-amber-400', bg: 'bg-amber-400/10', value: '94%' },
   ]
+
+  const userRole = user?.user_metadata?.role || 'recruiter'
+  const isCandidate = userRole === 'candidate'
+
+  if (isCandidate) {
+    return (
+      <div className="bg-background-dark min-h-screen text-slate-100 flex">
+        <Sidebar active="saved" />
+        <div className="flex-1 overflow-y-auto">
+          {/* Header */}
+          <header className="border-b border-border-dark px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40">
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                {user ? `Welcome back, ${user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Candidate'} 👋` : 'Candidate Dashboard'}
+              </h1>
+              <p className="text-slate-500 text-sm">Manage your profile, resume, and discover opportunities.</p>
+            </div>
+            {candidateProfile && (
+              <Link to={`/candidates/${user.id}`} className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark rounded-xl font-bold text-sm hover:scale-105 transition-all">
+                <span className="material-symbols-outlined text-lg">person</span>
+                View Public Profile
+              </Link>
+            )}
+          </header>
+
+          <main className="px-8 py-8 space-y-10 max-w-4xl step-enter">
+            {loading ? (
+              <div className="space-y-6">
+                <div className="bg-card-dark border border-border-dark rounded-2xl h-48 animate-pulse" />
+                <div className="grid grid-cols-3 gap-6">
+                  {[...Array(3)].map((_, i) => <div key={i} className="bg-card-dark border border-border-dark rounded-2xl h-24 animate-pulse" />)}
+                </div>
+              </div>
+            ) : !candidateProfile ? (
+              <div className="bg-card-dark border border-border-dark border-dashed rounded-[2rem] p-12 text-center space-y-6">
+                <div className="size-20 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(63,207,142,0.15)] border border-primary/20">
+                  <span className="material-symbols-outlined text-primary text-5xl">upload_file</span>
+                </div>
+                <div className="space-y-2 max-w-md mx-auto">
+                  <h3 className="text-2xl font-bold text-white">Complete Your Candidate Profile</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">
+                    Upload your resume to instantly extract your skills, history, and calculate your AI ranking. Without a profile, recruiters won't be able to search or find you!
+                  </p>
+                </div>
+                <Link to="/onboarding" className="px-8 py-4 bg-primary text-background-dark rounded-xl font-bold text-base hover:scale-105 transition-all inline-flex items-center gap-2 shadow-lg shadow-primary/20">
+                  <span className="material-symbols-outlined">auto_awesome</span>
+                  Upload Resume & Setup Profile
+                </Link>
+              </div>
+            ) : (
+              /* If profile IS complete */
+              <div className="space-y-8 animate-stepEnter">
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[
+                    { label: 'Profile Rating', value: `${candidateProfile.ai_score} AI`, icon: 'verified', color: 'text-primary', bg: 'bg-primary/10' },
+                    { label: 'Search Appearances', value: '24', icon: 'manage_search', color: 'text-blue-400', bg: 'bg-blue-400/10' },
+                    { label: 'Recruiter Views', value: '12', icon: 'visibility', color: 'text-purple-400', bg: 'bg-purple-400/10' },
+                  ].map((s) => (
+                    <div key={s.label} className="bg-card-dark border border-border-dark rounded-2xl p-6">
+                      <div className={`${s.bg} w-10 h-10 rounded-xl flex items-center justify-center mb-4`}>
+                        <span className={`material-symbols-outlined ${s.color}`}>{s.icon}</span>
+                      </div>
+                      <div className="text-3xl font-bold text-white mono-font mb-1">{s.value}</div>
+                      <div className="text-slate-500 text-sm">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Profile Overview Card */}
+                <div className="bg-card-dark border border-border-dark rounded-2xl p-8 relative overflow-hidden group">
+                  <div className={`absolute top-0 right-0 w-48 h-full bg-gradient-to-tr ${candidateProfile.gradient || 'from-primary to-emerald-600'} opacity-[0.03] blur-2xl pointer-events-none`} />
+                  
+                  <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                    <div className="flex gap-5 items-start">
+                      <div className="w-16 h-16 rounded-full border-2 border-border-dark flex-shrink-0">
+                        <div className={`w-full h-full rounded-full bg-gradient-to-tr ${candidateProfile.gradient || 'from-primary to-emerald-600'} flex items-center justify-center text-2xl font-bold text-background-dark`}>
+                          {candidateProfile.name?.charAt(0) || '?'}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <h2 className="text-2xl font-bold text-white">{candidateProfile.name}</h2>
+                        <p className="text-slate-400 text-sm">{candidateProfile.title}</p>
+                        <p className="text-slate-500 text-xs flex items-center gap-1">
+                          <span className="material-symbols-outlined text-sm">location_on</span>
+                          {candidateProfile.location || 'Remote'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 w-full md:w-auto">
+                      <Link to={`/candidates/${user.id}`} className="flex-1 md:flex-none text-center px-5 py-2.5 bg-transparent border border-border-dark text-slate-200 hover:bg-border-dark rounded-xl text-sm font-semibold transition-colors">
+                        View Profile
+                      </Link>
+                      <Link to="/onboarding" className="flex-1 md:flex-none text-center px-5 py-2.5 bg-primary text-background-dark rounded-xl text-sm font-bold hover:scale-[1.02] transition-all flex items-center justify-center gap-1">
+                        <span className="material-symbols-outlined text-sm">upload_file</span>
+                        Update Resume
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-border-dark mt-6 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Skills Captured</h4>
+                      <div className="flex flex-wrap gap-2 animate-pulse flex-1">
+                        {candidateProfile.skills?.slice(0, 8).map((skill) => (
+                          <span key={skill} className="px-2.5 py-1 bg-border-dark text-slate-300 text-xs font-medium rounded-full">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Bio Summary</h4>
+                      <p className="text-slate-400 text-xs leading-relaxed line-clamp-3">
+                        {candidateProfile.bio || 'No bio summary generated yet.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-background-dark min-h-screen text-slate-100 flex">

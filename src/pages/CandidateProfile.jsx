@@ -2,20 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import { useToast } from '../context/ToastContext'
-
-const MOCK_CANDIDATES = {
-  1: { id: 1, name: 'Alex Rivera', title: 'Senior Frontend Engineer', ai_score: 98, skills: ['React', 'TypeScript', 'GraphQL', 'Next.js', 'Vite'], location: 'San Francisco, CA', bio: 'I build beautiful, performant interfaces that users love. 8+ years shipping production React applications for companies ranging from early-stage startups to Fortune 500s.', experiences: [{ company: 'Stripe', role: 'Senior Engineer', from: '2022-01', current: true, description: 'Led frontend architecture for Stripe Dashboard, improving performance by 40%.' }, { company: 'Airbnb', role: 'Software Engineer', from: '2019-06', to: '2021-12', description: 'Built core booking flow components serving 150M+ users.' }], email: 'alex@example.com', github: 'github.com/alexrivera', gradient: 'from-primary to-emerald-600' },
-  2: { id: 2, name: 'Sarah Jenkins', title: 'Machine Learning Engineer', ai_score: 96, skills: ['Python', 'PyTorch', 'MLOps', 'TensorFlow', 'Kubernetes', 'GCP'], location: 'New York, NY', bio: 'Passionate about turning data into impact. I build and deploy ML systems at scale.', experiences: [{ company: 'OpenAI', role: 'ML Engineer', from: '2023-03', current: true, description: 'Working on model evaluation infrastructure and safety tooling.' }, { company: 'Google Brain', role: 'Research Engineer', from: '2020-08', to: '2023-02', description: 'Published 3 papers on efficient transformers.' }], email: 'sarah@example.com', github: 'github.com/sarahjenkins', gradient: 'from-blue-500 to-indigo-600' },
-  3: { id: 3, name: 'Michael Zhang', title: 'Backend Architect', ai_score: 94, skills: ['Go', 'Kubernetes', 'gRPC', 'Rust', 'PostgreSQL', 'Redis'], location: 'Austin, TX', bio: 'Systems thinker who loves designing distributed backends that are both highly available and a joy to maintain.', experiences: [{ company: 'Uber', role: 'Staff Engineer', from: '2021-04', current: true, description: 'Owns the real-time dispatch infrastructure handling 25M daily trips.' }], email: 'michael@example.com', github: 'github.com/michaelzhang', gradient: 'from-purple-500 to-pink-600' },
-  4: { id: 4, name: 'Elena Rodriguez', title: 'Fullstack Developer', ai_score: 92, skills: ['Next.js', 'PostgreSQL', 'AWS', 'TypeScript', 'Prisma', 'tRPC'], location: 'Miami, FL', bio: "Full-stack engineer who cares deeply about developer experience.", experiences: [{ company: 'Vercel', role: 'Developer Advocate + Engineer', from: '2022-06', current: true, description: 'Building OSS integrations and demonstrating Next.js best practices.' }], email: 'elena@example.com', github: 'github.com/elenarodriguez', gradient: 'from-orange-400 to-red-500' },
-  5: { id: 5, name: 'David Smith', title: 'DevOps Engineer', ai_score: 91, skills: ['Terraform', 'Docker', 'CI/CD', 'Kubernetes', 'AWS', 'Python'], location: 'Seattle, WA', bio: 'DevOps & Platform engineer with a focus on automation, infrastructure as code, and cloud native architectures.', experiences: [{ company: 'HashiCorp', role: 'DevOps Architect', from: '2021-08', current: true, description: 'Designed Terraform provider automation pipeline and worked on core CLI tools.' }, { company: 'Netflix', role: 'Senior Platform Engineer', from: '2018-02', to: '2021-07', description: 'Managed container deployment pipelines handling thousands of microservices.' }], email: 'david@example.com', github: 'github.com/davidsmith', gradient: 'from-emerald-500 to-teal-600' },
-  6: { id: 6, name: 'Aisha Khan', title: 'Cloud Solutions Architect', ai_score: 89, skills: ['Azure', 'Python', 'Networking', 'Terraform', 'Docker', 'Kubernetes'], location: 'Chicago, IL', bio: 'Cloud architect specializing in enterprise migrations, hybrid-cloud setups, and secure networking architectures.', experiences: [{ company: 'Microsoft', role: 'Solutions Architect', from: '2022-05', current: true, description: 'Advised Fortune 100 partners on large scale migrations to Azure.' }], email: 'aisha@example.com', github: 'github.com/aishakhan', gradient: 'from-cyan-500 to-blue-600' },
-  7: { id: 7, name: 'James Park', title: 'iOS Developer', ai_score: 87, skills: ['Swift', 'SwiftUI', 'Xcode', 'Objective-C', 'Combine', 'Cocoapods'], location: 'Los Angeles, CA', bio: 'Mobile engineer with a passion for clean UI and smooth interactive animations. Native iOS specialist.', experiences: [{ company: 'Apple', role: 'iOS Engineer', from: '2023-01', current: true, description: 'Working on native iOS application components for Apple Store app.' }], email: 'james@example.com', github: 'github.com/jamespark', gradient: 'from-orange-500 to-pink-600' },
-  8: { id: 8, name: 'Priya Patel', title: 'Data Engineer', ai_score: 86, skills: ['Spark', 'Kafka', 'dbt', 'SQL', 'Python', 'Snowflake'], location: 'Boston, MA', bio: 'Data pipelines engineer with expertise in building real-time data streaming and robust data warehouses.', experiences: [{ company: 'Snowflake', role: 'Senior Data Engineer', from: '2022-10', current: true, description: 'Optimized real-time ingestion pipelines scaling to petabytes of data.' }], email: 'priya@example.com', github: 'github.com/priyapatel', gradient: 'from-purple-500 to-indigo-600' },
-  9: { id: 9, name: 'Carlos Mendez', title: 'Security Engineer', ai_score: 85, skills: ['Pentesting', 'AWS', 'Zero Trust', 'Python', 'Linux', 'OAuth'], location: 'Denver, CO', bio: 'Security professional focusing on application security, penetration testing, and security automation.', experiences: [{ company: 'CrowdStrike', role: 'Security Analyst', from: '2023-06', current: true, description: 'Conducted penetration tests and security architecture reviews.' }], email: 'carlos@example.com', github: 'github.com/carlosmendez', gradient: 'from-red-500 to-rose-600' }
-}
-
-const DEFAULT = { id: 1, name: 'Unknown Candidate', title: 'Software Engineer', ai_score: 80, skills: ['React', 'TypeScript'], location: 'Remote', bio: 'Profile coming soon.', experiences: [], gradient: 'from-cyan-400 to-blue-500' }
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 
 function ScoreRing({ score }) {
   const r = 40, circ = 2 * Math.PI * r
@@ -45,6 +33,7 @@ export default function CandidateProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { showToast } = useToast()
+  const { user } = useAuth()
   const [candidate, setCandidate] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
@@ -52,29 +41,79 @@ export default function CandidateProfile() {
   const [barsMounted, setBarsMounted] = useState(false)
 
   useEffect(() => {
-    setLoading(true)
-    setBarsMounted(false)
-    const activeId = Number(id)
-    const profile = MOCK_CANDIDATES[activeId] || MOCK_CANDIDATES[1]
-    setCandidate(profile)
-    
-    // Default saved IDs are 1, 2, 3
-    setSaved([1, 2, 3].includes(profile.id))
-    setLoading(false)
+    const fetchProfile = async () => {
+      setLoading(true)
+      setBarsMounted(false)
+      
+      // Fetch candidate from Supabase
+      const { data: profile, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle()
+      
+      if (profile) {
+        setCandidate(profile)
+        
+        // Fetch shortlist status if recruiter logged in
+        if (user) {
+          const { data: savedData } = await supabase
+            .from('saved_candidates')
+            .select('id')
+            .eq('recruiter_id', user.id)
+            .eq('candidate_id', id)
+            .maybeSingle()
+          
+          setSaved(!!savedData)
+        }
+      } else {
+        console.error('Error fetching profile:', error)
+      }
+      setLoading(false)
+      
+      const timer = setTimeout(() => setBarsMounted(true), 150)
+      return () => clearTimeout(timer)
+    }
 
-    const timer = setTimeout(() => setBarsMounted(true), 150)
-    return () => clearTimeout(timer)
-  }, [id])
+    fetchProfile()
+  }, [id, user])
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!user) {
+      showToast("Please log in to save candidates")
+      return
+    }
     if (saved) {
-      setSaved(false)
-      showToast("Removed from shortlist")
+      const { error } = await supabase
+        .from('saved_candidates')
+        .delete()
+        .eq('recruiter_id', user.id)
+        .eq('candidate_id', candidate.id)
+      
+      if (!error) {
+        setSaved(false)
+        showToast("Removed from shortlist")
+      } else {
+        showToast("Error removing from shortlist")
+      }
     } else {
-      setSaved(true)
-      showToast("Saved to shortlist ✓")
+      const { error } = await supabase
+        .from('saved_candidates')
+        .insert({
+          recruiter_id: user.id,
+          candidate_id: candidate.id
+        })
+      
+      if (!error) {
+        setSaved(true)
+        showToast("Saved to shortlist ✓")
+      } else {
+        showToast("Error saving to shortlist")
+      }
     }
   }
+
+  const isOwnProfile = user && user.id === id
 
   if (loading || !candidate) return (
     <div className="bg-background-dark min-h-screen">
@@ -94,9 +133,11 @@ export default function CandidateProfile() {
     <div className="bg-background-dark min-h-screen text-slate-100">
       <Navbar />
       <main className="max-w-7xl mx-auto px-6 py-10 step-enter">
-        <button onClick={() => navigate('/candidates')} className="flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-8 transition-colors group">
-          <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>Back to candidates
-        </button>
+        {!isOwnProfile && (
+          <button onClick={() => navigate('/candidates')} className="flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-8 transition-colors group">
+            <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform">arrow_back</span>Back to candidates
+          </button>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left Column */}
@@ -125,17 +166,35 @@ export default function CandidateProfile() {
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">
-              <button onClick={handleSave}
-                className={`w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold text-sm transition-all ${saved ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-primary text-background-dark hover:scale-105'}`}>
-                <span className={`material-symbols-outlined text-lg ${saved ? 'fill-icon text-primary' : ''}`}>bookmark</span>
-                {saved ? 'Saved to Shortlist' : 'Save to Shortlist'}
-              </button>
-              <button 
-                onClick={() => showToast("Feature coming soon")}
-                className="w-full flex items-center justify-center gap-2 py-3 px-6 border border-border-dark text-slate-300 hover:text-white hover:border-primary rounded-xl font-bold text-sm transition-all"
-              >
-                <span className="material-symbols-outlined text-lg">mail</span>Contact Candidate
-              </button>
+              {isOwnProfile ? (
+                <>
+                  <button 
+                    onClick={() => navigate('/onboarding')}
+                    className="w-full bg-primary text-background-dark hover:scale-[1.02] flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold text-sm transition-all"
+                  >
+                    <span className="material-symbols-outlined text-lg">upload_file</span>
+                    Update Resume / Profile
+                  </button>
+                  <div className="w-full flex items-center justify-center gap-2 py-3 px-6 border border-border-dark bg-border-dark/20 text-slate-400 rounded-xl font-medium text-xs">
+                    <span className="material-symbols-outlined text-sm">info</span>
+                    This is your public candidate profile
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button onClick={handleSave}
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold text-sm transition-all ${saved ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-primary text-background-dark hover:scale-105'}`}>
+                    <span className={`material-symbols-outlined text-lg ${saved ? 'fill-icon text-primary' : ''}`}>bookmark</span>
+                    {saved ? 'Saved to Shortlist' : 'Save to Shortlist'}
+                  </button>
+                  <button 
+                    onClick={() => showToast("Feature coming soon")}
+                    className="w-full flex items-center justify-center gap-2 py-3 px-6 border border-border-dark text-slate-300 hover:text-white hover:border-primary rounded-xl font-bold text-sm transition-all"
+                  >
+                    <span className="material-symbols-outlined text-lg">mail</span>Contact Candidate
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Meta */}
