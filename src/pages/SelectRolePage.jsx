@@ -54,12 +54,20 @@ export default function SelectRolePage() {
   const selectRole = async (role) => {
     setLoading(role)
     try {
+      // 1. Update database profile
       const { error } = await supabase
         .from('profiles')
         .update({ role })
         .eq('id', user.id)
 
       if (error) throw error
+
+      // 2. Sync to Supabase auth metadata to instantly trigger context update
+      const { error: authError } = await supabase.auth.updateUser({
+        data: { role }
+      })
+
+      if (authError) throw authError
 
       showToast(`Selected role: ${role} ✓`)
 

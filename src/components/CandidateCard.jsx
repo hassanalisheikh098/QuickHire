@@ -28,11 +28,17 @@ export default function CandidateCard({ candidate, onSave, saved = false }) {
     candidate.gradient ||
     AVATAR_COLORS[hashId(candidate.id) % AVATAR_COLORS.length]
 
+  const aiReason = candidate.ai_reason
+  const aiMatchScore = candidate.ai_match_score
+
   return (
     <div className="bg-card-dark border border-border-dark rounded-xl p-6 relative hover:scale-[1.01] hover:shadow-2xl hover:shadow-primary/5 hover:border-primary/30 transition-all group">
-      {/* AI Score Badge */}
-      <div className="absolute top-4 right-4 bg-primary/10 px-3 py-1 rounded-full">
-        <span className="mono-font text-primary text-sm font-bold">{candidate.ai_score} AI</span>
+      {/* AI Score Badge — show match score if from AI search, else original ai_score */}
+      <div className={`absolute top-4 right-4 px-3 py-1 rounded-full ${aiMatchScore != null ? 'grok-pulse' : ''}`}
+        style={{ background: aiMatchScore != null ? 'linear-gradient(135deg, rgba(63,207,142,0.15), rgba(99,102,241,0.15))' : 'rgba(63,207,142,0.1)' }}>
+        <span className="mono-font text-primary text-sm font-bold">
+          {aiMatchScore != null ? `${aiMatchScore}%` : `${candidate.ai_score} AI`}
+        </span>
       </div>
 
       {/* Profile */}
@@ -61,7 +67,7 @@ export default function CandidateCard({ candidate, onSave, saved = false }) {
       </div>
 
       {/* Skills */}
-      <div className="flex flex-wrap justify-center gap-2 mb-8">
+      <div className="flex flex-wrap justify-center gap-2 mb-4">
         {(candidate.skills || []).slice(0, 4).map((skill) => (
           <span
             key={skill}
@@ -71,6 +77,14 @@ export default function CandidateCard({ candidate, onSave, saved = false }) {
           </span>
         ))}
       </div>
+
+      {/* AI Match Reason — shown when search returns ai_reason */}
+      {aiReason && (
+        <div className="ai-reason-chip rounded-lg px-3 py-2 mb-4 flex items-start gap-2">
+          <span className="material-symbols-outlined text-primary text-sm mt-0.5 flex-shrink-0">auto_awesome</span>
+          <p className="text-xs text-slate-300 leading-relaxed">{aiReason}</p>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-2">

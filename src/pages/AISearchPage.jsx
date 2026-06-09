@@ -4,6 +4,7 @@ import CandidateCard from '../components/CandidateCard'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
+import { searchCandidatesWithAI, fallbackSearch, isGrokConfigured } from '../lib/grok'
 
 const PLACEHOLDERS = [
   'Find a senior React engineer with GraphQL experience...',
@@ -13,28 +14,69 @@ const PLACEHOLDERS = [
   'Mobile developers with cross-platform expertise...',
 ]
 
+/* ───── Thinking Animation ───── */
 function ThinkingAnimation() {
   return (
     <div className="flex flex-col items-center justify-center py-20 space-y-6">
       <div className="relative">
-        <div className="w-16 h-16 rounded-full border-2 border-primary/30 flex items-center justify-center animate-pulse">
-          <span className="material-symbols-outlined text-primary text-3xl">psychology</span>
+        <div className="w-20 h-20 rounded-full flex items-center justify-center grok-pulse"
+          style={{ background: 'linear-gradient(135deg, rgba(63,207,142,0.12), rgba(99,102,241,0.12))' }}>
+          <span className="material-symbols-outlined text-4xl grok-gradient-text" style={{ WebkitTextFillColor: '#3fcf8e' }}>psychology</span>
         </div>
-        <div className="absolute -inset-2 rounded-full border border-primary/20 animate-ping" />
+        <div className="absolute -inset-3 rounded-full border border-primary/20 animate-ping" />
+        <div className="absolute -inset-6 rounded-full border border-indigo-500/10 animate-ping" style={{ animationDelay: '0.5s' }} />
       </div>
       <div className="space-y-2 text-center">
-        <p className="text-white font-semibold">AI is analyzing your query</p>
-        <p className="text-slate-500 text-sm">Scanning 2,400+ candidates for best matches...</p>
+        <p className="text-white font-semibold text-lg">Grok AI is analyzing your query</p>
+        <p className="text-slate-500 text-sm">Semantically searching across all candidates for best matches...</p>
       </div>
       <div className="flex gap-2">
         <div className="w-2.5 h-2.5 rounded-full bg-primary dot-bounce" />
-        <div className="w-2.5 h-2.5 rounded-full bg-primary dot-bounce" />
-        <div className="w-2.5 h-2.5 rounded-full bg-primary dot-bounce" />
+        <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 dot-bounce" />
+        <div className="w-2.5 h-2.5 rounded-full bg-purple-500 dot-bounce" />
       </div>
     </div>
   )
 }
 
+/* ───── AI Summary Card ───── */
+function AISummaryCard({ summary, queryInterpretation, suggestions, onSuggestionClick }) {
+  if (!summary) return null
+  return (
+    <div className="ai-insight-card rounded-2xl p-6 mb-8 type-reveal">
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-xl grok-gradient flex items-center justify-center flex-shrink-0">
+          <span className="material-symbols-outlined text-white text-xl">auto_awesome</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-white font-bold text-sm">Grok AI Insight</h3>
+            <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full grok-gradient text-white">AI</span>
+          </div>
+          {queryInterpretation && (
+            <p className="text-xs text-slate-500 mb-2 italic">
+              <span className="text-primary font-medium">Understanding:</span> {queryInterpretation}
+            </p>
+          )}
+          <p className="text-sm text-slate-300 leading-relaxed mb-3">{summary}</p>
+          {suggestions && suggestions.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <span className="text-xs text-slate-500 self-center">Try also:</span>
+              {suggestions.map((s, i) => (
+                <button key={i} onClick={() => onSuggestionClick(s)}
+                  className="px-3 py-1 bg-card-dark border border-border-dark text-slate-400 hover:border-primary hover:text-primary rounded-full text-xs transition-colors">
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ───── Main Page ───── */
 export default function AISearchPage() {
   const { showToast } = useToast()
   const { user } = useAuth()
@@ -46,6 +88,10 @@ export default function AISearchPage() {
   const [searched, setSearched] = useState(false)
   const [placeholderIdx, setPlaceholderIdx] = useState(0)
   const [savedIds, setSavedIds] = useState(new Set())
+  const [aiSummary, setAiSummary] = useState('')
+  const [aiQueryInterpretation, setAiQueryInterpretation] = useState('')
+  const [aiSuggestions, setAiSuggestions] = useState([])
+  const [usingFallback, setUsingFallback] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -107,52 +153,68 @@ export default function AISearchPage() {
     executeSearch(searchQuery)
   }
 
-  const executeSearch = (searchQuery) => {
+  const executeSearch = async (searchQuery) => {
     if (!searchQuery.trim()) return
     setThinking(true)
     setSearched(false)
     setResults([])
+    setAiSummary('')
+    setAiQueryInterpretation('')
+    setAiSuggestions([])
+    setUsingFallback(false)
 
-    setTimeout(async () => {
-      const queryLower = searchQuery.toLowerCase()
-      let finalResults = candidates.filter(c => {
-        const matchName = c.name?.toLowerCase().includes(queryLower)
-        const matchTitle = c.title?.toLowerCase().includes(queryLower)
-        const matchSkills = c.skills?.some(skill => skill.toLowerCase().includes(queryLower))
-        return matchName || matchTitle || matchSkills
-      })
+    try {
+      // Try Grok AI search first
+      const aiResult = await searchCandidatesWithAI(searchQuery, candidates)
+      
+      setResults(aiResult.results)
+      setAiSummary(aiResult.summary)
+      setAiQueryInterpretation(aiResult.queryInterpretation)
+      setAiSuggestions(aiResult.suggestions)
+      setUsingFallback(false)
+    } catch (err) {
+      console.warn('[AISearch] Grok failed, using fallback:', err.message)
+      
+      // Fallback to keyword search
+      const fallbackResult = fallbackSearch(searchQuery, candidates)
+      setResults(fallbackResult.results)
+      setAiSummary(fallbackResult.summary)
+      setAiQueryInterpretation(fallbackResult.queryInterpretation)
+      setAiSuggestions(fallbackResult.suggestions)
+      setUsingFallback(true)
 
-      if (finalResults.length === 0) {
-        finalResults = [...candidates].sort((a, b) => b.ai_score - a.ai_score).slice(0, 4)
-      }
-
-      setResults(finalResults)
-
-      // Save to Supabase search log if logged in
-      if (user) {
-        await supabase.from('search_history').insert({
-          recruiter_id: user.id,
-          query: searchQuery,
-          results_count: finalResults.length
-        })
-        fetchRecentSearches()
+      if (err.message === 'GROK_API_KEY_MISSING') {
+        showToast('Grok API key not configured — using keyword search')
       } else {
-        // Fallback local state history updates for non-logged in users
-        setHistory((prev) => {
-          const newHistoryItem = {
-            id: Date.now(),
-            query: searchQuery,
-            results: finalResults.length,
-            created_at: new Date().toISOString().slice(0, 10)
-          }
-          const filtered = prev.filter(h => h.query.toLowerCase() !== searchQuery.toLowerCase())
-          return [newHistoryItem, ...filtered].slice(0, 6)
-        })
+        console.error('[AISearch] Full error:', err)
+        showToast(`Grok error: ${err.message.slice(0, 120)}`)
       }
+    }
 
-      setThinking(false)
-      setSearched(true)
-    }, 1500)
+    // Save to Supabase search log if logged in
+    if (user) {
+      await supabase.from('search_history').insert({
+        recruiter_id: user.id,
+        query: searchQuery,
+        results_count: results.length
+      })
+      fetchRecentSearches()
+    } else {
+      // Fallback local state history updates for non-logged in users
+      setHistory((prev) => {
+        const newHistoryItem = {
+          id: Date.now(),
+          query: searchQuery,
+          results: results.length,
+          created_at: new Date().toISOString().slice(0, 10)
+        }
+        const filtered = prev.filter(h => h.query.toLowerCase() !== searchQuery.toLowerCase())
+        return [newHistoryItem, ...filtered].slice(0, 6)
+      })
+    }
+
+    setThinking(false)
+    setSearched(true)
   }
 
   const handleSearchSubmit = (e) => {
@@ -210,15 +272,30 @@ export default function AISearchPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="border-b border-border-dark px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40">
           <div>
-            <h1 className="text-xl font-bold text-white">AI Talent Search</h1>
-            <p className="text-slate-500 text-sm">Natural language · 2,400+ candidates indexed</p>
+            <h1 className="text-xl font-bold text-white flex items-center gap-2">
+              AI Talent Search
+              <span className="text-xs font-medium px-2 py-0.5 rounded-md grok-gradient text-white">Grok</span>
+            </h1>
+            <p className="text-slate-500 text-sm">
+              Powered by Grok AI · Natural language semantic search · {candidates.length.toLocaleString()} candidates indexed
+            </p>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
+          <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-full ${
+            isGrokConfigured 
+              ? 'bg-primary/10 border-primary/20' 
+              : 'bg-yellow-500/10 border-yellow-500/20'
+          }`}>
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                isGrokConfigured ? 'bg-primary' : 'bg-yellow-500'
+              }`} />
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                isGrokConfigured ? 'bg-primary' : 'bg-yellow-500'
+              }`} />
             </span>
-            <span className="text-primary text-xs font-bold">AI Active</span>
+            <span className={`text-xs font-bold ${isGrokConfigured ? 'text-primary' : 'text-yellow-500'}`}>
+              {isGrokConfigured ? 'Grok AI Active' : 'Keyword Mode'}
+            </span>
           </div>
         </header>
 
@@ -244,25 +321,34 @@ export default function AISearchPage() {
                   <button
                     type="submit"
                     disabled={!query.trim() || thinking}
-                    className="px-6 py-2.5 bg-primary text-background-dark rounded-xl font-bold text-sm hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-6 py-2.5 grok-gradient text-white rounded-xl font-bold text-sm hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
                   >
                     <span className="material-symbols-outlined text-lg">auto_awesome</span>
-                    Search
+                    {thinking ? 'Searching...' : 'Search'}
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-slate-600 mt-3 ml-2">Try: "Backend engineers with Rust experience" · "ML engineers at startups in NY"</p>
+              <div className="flex items-center gap-3 mt-3 ml-2">
+                <p className="text-xs text-slate-600">Try: "Backend engineers with Rust experience" · "ML engineers at startups in NY"</p>
+                {!isGrokConfigured && (
+                  <span className="text-[10px] text-yellow-500/80 bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
+                    ⚠ Grok API key not set — using keyword fallback
+                  </span>
+                )}
+              </div>
             </form>
 
             {thinking && <ThinkingAnimation />}
 
             {!thinking && !searched && (
               <div className="text-center py-20 space-y-4">
-                <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary text-4xl">manage_search</span>
+                <div className="w-24 h-24 mx-auto rounded-2xl grok-gradient flex items-center justify-center shadow-2xl shadow-primary/20">
+                  <span className="material-symbols-outlined text-white text-5xl">manage_search</span>
                 </div>
-                <h2 className="text-xl font-bold text-white">Ask anything about talent</h2>
-                <p className="text-slate-500 max-w-sm mx-auto">Our AI understands natural language. Describe the engineer you're looking for in your own words.</p>
+                <h2 className="text-2xl font-bold text-white mt-6">Ask anything about talent</h2>
+                <p className="text-slate-500 max-w-md mx-auto">
+                  Grok AI understands natural language. Describe the engineer you're looking for in your own words — skills, experience, company background, anything.
+                </p>
                 <div className="flex flex-wrap justify-center gap-2 pt-4">
                   {['Senior React engineer', 'ML engineer Python', 'DevOps Kubernetes expert', 'iOS Swift developer'].map((s) => (
                     <button key={s} onClick={() => triggerSearch(s)}
@@ -271,11 +357,25 @@ export default function AISearchPage() {
                     </button>
                   ))}
                 </div>
+                <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card-dark border border-border-dark">
+                  <div className="w-5 h-5 rounded grok-gradient flex items-center justify-center">
+                    <span className="material-symbols-outlined text-white text-xs">bolt</span>
+                  </div>
+                  <span className="text-xs text-slate-400">Powered by <span className="grok-gradient-text font-bold">Grok AI</span> · xAI</span>
+                </div>
               </div>
             )}
 
             {searched && !thinking && (
               <div className="step-enter">
+                {/* AI Summary Card */}
+                <AISummaryCard
+                  summary={aiSummary}
+                  queryInterpretation={aiQueryInterpretation}
+                  suggestions={aiSuggestions}
+                  onSuggestionClick={triggerSearch}
+                />
+
                 <div className="flex flex-col items-center mb-6">
                   <div className="flex items-center gap-4 w-full">
                     <div className="flex-1 h-px bg-border-dark" />
@@ -284,19 +384,40 @@ export default function AISearchPage() {
                     </span>
                     <div className="flex-1 h-px bg-border-dark" />
                   </div>
-                  <span className="text-xs text-primary font-semibold mt-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
-                    Showing {results.length} best matches · 98% confidence
-                  </span>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                      usingFallback
+                        ? 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20'
+                        : 'text-primary bg-primary/10 border-primary/20'
+                    }`}>
+                      {usingFallback 
+                        ? `⚡ Keyword fallback · ${results.length} matches`
+                        : `✨ Grok AI · ${results.length} semantic matches`
+                      }
+                    </span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {results.map((candidate) => (
-                    <CandidateCard key={candidate.id} candidate={candidate} onSave={handleSave} saved={savedIds.has(candidate.id)} />
-                  ))}
-                </div>
+
+                {results.length === 0 ? (
+                  <div className="text-center py-16 space-y-3">
+                    <div className="w-16 h-16 mx-auto rounded-full bg-card-dark flex items-center justify-center">
+                      <span className="material-symbols-outlined text-slate-500 text-3xl">search_off</span>
+                    </div>
+                    <p className="text-slate-400 font-medium">No matching candidates found</p>
+                    <p className="text-slate-600 text-sm max-w-sm mx-auto">Try broadening your search terms or using different keywords.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {results.map((candidate) => (
+                      <CandidateCard key={candidate.id} candidate={candidate} onSave={handleSave} saved={savedIds.has(candidate.id)} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
 
+          {/* Sidebar */}
           <div className="w-72 border-l border-border-dark bg-sidebar-dark flex-shrink-0 overflow-y-auto p-6">
             <h3 className="text-xs uppercase tracking-widest font-bold text-slate-500 mb-4">Recent Searches</h3>
             <div className="space-y-2">
@@ -310,13 +431,50 @@ export default function AISearchPage() {
                   </div>
                 </button>
               ))}
+              {history.length === 0 && (
+                <p className="text-xs text-slate-600 text-center py-4">No recent searches</p>
+              )}
             </div>
-            <div className="mt-8 p-4 bg-card-dark rounded-xl border border-border-dark">
+
+            {/* AI Status Panel */}
+            <div className="mt-8 p-4 ai-insight-card rounded-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-md grok-gradient flex items-center justify-center">
+                  <span className="material-symbols-outlined text-white text-xs">bolt</span>
+                </div>
+                <span className="text-xs font-bold text-white">Grok AI Status</span>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Engine</span>
+                  <span className="text-xs text-slate-300 font-medium">grok-3-mini</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Status</span>
+                  <span className={`text-xs font-medium flex items-center gap-1 ${isGrokConfigured ? 'text-primary' : 'text-yellow-500'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isGrokConfigured ? 'bg-primary' : 'bg-yellow-500'}`} />
+                    {isGrokConfigured ? 'Connected' : 'No API Key'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Candidates</span>
+                  <span className="text-xs text-slate-300 font-medium">{candidates.length} indexed</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tips */}
+            <div className="mt-4 p-4 bg-card-dark rounded-xl border border-border-dark">
               <div className="flex items-center gap-2 mb-2">
                 <span className="material-symbols-outlined text-primary text-sm">tips_and_updates</span>
-                <span className="text-xs font-bold text-white">AI Tip</span>
+                <span className="text-xs font-bold text-white">AI Tips</span>
               </div>
-              <p className="text-xs text-slate-500 leading-relaxed">Be specific about years of experience, company type, or tech stack for better matches.</p>
+              <ul className="text-xs text-slate-500 leading-relaxed space-y-1.5">
+                <li>• Be specific about skills and experience level</li>
+                <li>• Mention company type (startup, FAANG, etc.)</li>
+                <li>• Include location preferences if needed</li>
+                <li>• Describe the ideal candidate in plain English</li>
+              </ul>
             </div>
           </div>
         </div>

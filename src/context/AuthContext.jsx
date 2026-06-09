@@ -41,8 +41,8 @@ export function AuthProvider({ children }) {
                 role: profile.role || currentUser.user_metadata?.role,
               }
             } else if (event === 'SIGNED_IN') {
-              // New OAuth user — create their profile
-              const oauthRole = localStorage.getItem('oauth_role') || null
+              // New OAuth/Email user — create their profile
+              const oauthRole = localStorage.getItem('oauth_role') || currentUser.user_metadata?.role || null
               localStorage.removeItem('oauth_role')
               const fullName =
                 currentUser.user_metadata?.full_name ||

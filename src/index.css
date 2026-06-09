@@ -109,6 +109,71 @@
 /* Score ring draw-in */
 .score-ring { transition: stroke-dashoffset 1s ease-out; }
 
+/* ── Grok AI Search Styles ────────────────────────────── */
+
+/* AI insight card — glassmorphism */
+.ai-insight-card {
+  background: linear-gradient(135deg, rgba(63, 207, 142, 0.06) 0%, rgba(99, 102, 241, 0.06) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(63, 207, 142, 0.15);
+}
+
+/* Grok xAI branded gradient */
+.grok-gradient {
+  background: linear-gradient(135deg, #3fcf8e 0%, #6366f1 50%, #a855f7 100%);
+}
+.grok-gradient-text {
+  background: linear-gradient(135deg, #3fcf8e 0%, #6366f1 50%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Typewriter reveal for AI summary text */
+@keyframes typeReveal {
+  from { max-height: 0; opacity: 0; }
+  to { max-height: 400px; opacity: 1; }
+}
+.type-reveal {
+  animation: typeReveal 0.8s ease-out both;
+  overflow: hidden;
+}
+
+/* Shimmer loading skeleton */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #1c1c1c 25%, #2a2a2a 50%, #1c1c1c 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Glow pulse for AI active indicator */
+@keyframes grokPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(63, 207, 142, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(63, 207, 142, 0.6), 0 0 40px rgba(99, 102, 241, 0.2); }
+}
+.grok-pulse {
+  animation: grokPulse 2s ease-in-out infinite;
+}
+
+/* AI reason chip on candidate cards */
+.ai-reason-chip {
+  background: linear-gradient(135deg, rgba(63, 207, 142, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+  border: 1px solid rgba(63, 207, 142, 0.12);
+}
+
+/* Match score ring for AI results */
+@keyframes scoreCountUp {
+  from { stroke-dashoffset: 100; }
+}
+.match-score-ring {
+  animation: scoreCountUp 1s ease-out both;
+}
+
 /* Stitch extra classes */
 .surface { background-color: #1c1c1c; }
 .border-border-muted { border-color: #333; }
