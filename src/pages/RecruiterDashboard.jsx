@@ -14,6 +14,7 @@ export default function RecruiterDashboard() {
   const [candidateProfile, setCandidateProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [totalCandidates, setTotalCandidates] = useState(0)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,6 +66,14 @@ export default function RecruiterDashboard() {
         })))
       } else {
         console.error('Error fetching search history:', histError)
+      }
+
+      // Fetch total candidate count
+      const { count: candCount } = await supabase
+        .from('candidates')
+        .select('*', { count: 'exact', head: true })
+      if (candCount !== null) {
+        setTotalCandidates(candCount)
       }
 
       setLoading(false)
@@ -342,7 +351,7 @@ export default function RecruiterDashboard() {
               <div className="space-y-3">
                 {[
                   { to: '/search', icon: 'manage_search', label: 'Start AI Search', desc: 'Find candidates with natural language', color: 'text-primary', bg: 'bg-primary/10' },
-                  { to: '/candidates', icon: 'group', label: 'Browse All Talent', desc: 'Explore 2,400+ candidates', color: 'text-blue-400', bg: 'bg-blue-400/10' },
+                  { to: '/candidates', icon: 'group', label: 'Browse All Talent', desc: totalCandidates ? `Explore ${totalCandidates} active candidates` : 'Explore all active candidates', color: 'text-blue-400', bg: 'bg-blue-400/10' },
                   { to: '/onboarding', icon: 'person_add', label: 'Invite a Candidate', desc: 'Send onboarding link to a prospect', color: 'text-purple-400', bg: 'bg-purple-400/10' },
                 ].map((a) => (
                   <Link key={a.label} to={a.to} className="flex items-center gap-4 p-4 rounded-xl border border-border-dark hover:border-primary/30 hover:bg-white/5 transition-all group">

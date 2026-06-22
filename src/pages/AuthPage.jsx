@@ -16,6 +16,19 @@ export default function AuthPage() {
 
   const { signIn, signUp, signInWithGoogle, user } = useAuth()
   const navigate = useNavigate()
+  const [candidateCount, setCandidateCount] = useState(null)
+
+  useEffect(() => {
+    const fetchCandidateCount = async () => {
+      const { count, error } = await supabase
+        .from('candidates')
+        .select('*', { count: 'exact', head: true })
+      if (!error && count !== null) {
+        setCandidateCount(count)
+      }
+    }
+    fetchCandidateCount()
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -148,12 +161,12 @@ export default function AuthPage() {
             </span>
           </h2>
           <p className="text-slate-400 leading-relaxed">
-            Join 500+ companies that trust QuickHire's AI to discover, evaluate and connect with top talent.
+            Join 7 companies that trust QuickHire's AI to discover, evaluate and connect with top talent.
           </p>
 
           <div className="grid grid-cols-3 gap-4 pt-4">
             {[
-              { value: '2.4K+', label: 'Candidates' },
+              { value: candidateCount !== null ? `${candidateCount}` : '...', label: 'Candidates' },
               { value: '98%', label: 'AI Accuracy' },
               { value: '70%', label: 'Time Saved' },
             ].map((stat) => (

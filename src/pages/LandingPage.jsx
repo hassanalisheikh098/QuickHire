@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Home, Zap, Layers, Users } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabase'
 
 const menuItems = [
   { icon: <Home className="h-4 w-4" />, label: "Home", href: "#", gradient: "radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(37,99,235,0.06) 50%, rgba(29,78,216,0) 100%)", iconColor: "group-hover:text-blue-500" },
@@ -53,14 +55,28 @@ const steps = [
 ]
 
 const testimonials = [
-  { quote: "The AI scoring is scarily accurate. We've cut our screening time by 70% while finding better quality hires.", name: 'Sarah Chen', role: 'Head of Talent @ TechFlow', gradient: 'from-primary to-emerald-600' },
-  { quote: 'Natural language search changed everything for us. I can find niche developers just by describing the projects.', name: 'James Wilson', role: 'CTO @ Lumina AI', gradient: 'from-blue-500 to-indigo-600' },
-  { quote: 'The AI visualisation of our candidate pipeline gives us insights we never saw in spreadsheets.', name: 'Elena Rodriguez', role: 'Recruiter @ Nexus Corp', gradient: 'from-purple-500 to-pink-600' },
+  { quote: "The AI scoring is scarily accurate. We've cut our screening time by 70% while finding better software engineers in Lahore and Karachi.", name: 'Zainab Malik', role: 'Head of Talent @ Tintash', gradient: 'from-primary to-emerald-600' },
+  { quote: 'Natural language search changed everything for our engineering team. Finding niche React and Python developers in Pakistan has never been this simple.', name: 'Muhammad Ali', role: 'CTO @ PriceOye', gradient: 'from-blue-500 to-indigo-600' },
+  { quote: 'The AI visualisation of our candidate pipeline gives us hiring insights we never saw in traditional spreadsheets. Essential for modern recruitment.', name: 'Ayesha Khan', role: 'Talent Acquisition Lead @ Sastaticket', gradient: 'from-purple-500 to-pink-600' },
 ]
 
 export default function LandingPage() {
   const { user, signOut } = useAuth()
   const role = user?.user_metadata?.role || null
+  const [candidateCount, setCandidateCount] = useState(null)
+
+  useEffect(() => {
+    const fetchCandidateCount = async () => {
+      const { count, error } = await supabase
+        .from('candidates')
+        .select('*', { count: 'exact', head: true })
+      
+      if (!error && count !== null) {
+        setCandidateCount(count)
+      }
+    }
+    fetchCandidateCount()
+  }, [])
 
   return (
     <div className="bg-background-dark text-slate-100 min-h-screen selection:bg-primary/30">
@@ -274,10 +290,10 @@ export default function LandingPage() {
         <section className="max-w-7xl mx-auto px-6 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { value: '2.4K+', label: 'Active Candidates', icon: 'group' },
+                { value: candidateCount !== null ? `${candidateCount}` : '...', label: 'Active Candidates', icon: 'group' },
               { value: '98%', label: 'AI Match Accuracy', icon: 'verified' },
               { value: '70%', label: 'Time Saved', icon: 'timer' },
-              { value: '500+', label: 'Companies Hiring', icon: 'business' },
+              { value: '7', label: 'Companies Hiring', icon: 'business' },
             ].map((s) => (
               <div key={s.label} className="bg-card-dark p-6 rounded-2xl border border-border-dark text-center hover:-translate-y-1 transition-transform">
                 <span className="material-symbols-outlined text-primary text-3xl mb-3 block">{s.icon}</span>
@@ -321,7 +337,7 @@ export default function LandingPage() {
             <div className="absolute top-0 right-0 w-1/2 h-full bg-primary/5 blur-[100px] rounded-full" />
             <div className="relative z-10 space-y-8">
               <h2 className="text-4xl md:text-5xl font-bold text-white">Ready to transform your hiring?</h2>
-              <p className="text-slate-400 text-lg max-w-xl mx-auto">Join 500+ innovative companies using QuickHire to build their dream teams.</p>
+              <p className="text-slate-400 text-lg max-w-xl mx-auto">Join 7 innovative companies using QuickHire to build their dream teams.</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/auth?mode=signup" className="bg-primary text-background-dark px-10 py-4 rounded-xl font-bold text-lg hover:scale-105 transition-all">Start Free Trial</Link>
                 <Link to="/candidates" className="bg-white/5 text-white border border-white/10 px-10 py-4 rounded-xl font-bold text-lg hover:bg-white/10 transition-all">Browse Talent</Link>
