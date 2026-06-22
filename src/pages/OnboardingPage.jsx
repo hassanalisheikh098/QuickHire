@@ -164,7 +164,13 @@ JSON Schema:
 Additional Instructions:
 1. If a field is missing or cannot be determined from the text, use an empty string "" or an empty array [] as appropriate. Do not omit any keys from the final JSON.
 2. Ensure all 'from' and 'to' date fields strictly follow the 'YYYY-MM' format (or 'Present' for ongoing roles).
-3. Compute the 'ai_score' as an integer between 0 and 100 representing the strength of the candidate's professional profile based on their skills and experience.
+3. Compute 'ai_score' as an integer 0-100 using this strict unified rubric:
+   - 90-100: Exceptional — FAANG/top-tier internships + outstanding projects (students), OR 8+ years at reputable companies, staff/principal/lead level with clear impact (professionals). Extremely rare, must truly stand out.
+   - 75-89: Strong — 1-2 solid internships + good projects (students), OR 4-7 years solid experience with measurable achievements (professionals).
+   - 60-74: Average — basic projects and skills, no internships (students), OR 1-3 years experience, ordinary roles (professionals).
+   - 40-59: Weak — vague or minimal content, few skills, little to show (both).
+   - 0-39: Empty resume, random/unreadable file, or no professional/academic content whatsoever.
+   Be strict and consistent. A 90+ must be genuinely rare. When details are vague or unverifiable, default lower
 
 Resume Text:
 ${resumeText}`
