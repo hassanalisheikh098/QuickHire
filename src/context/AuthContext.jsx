@@ -30,7 +30,39 @@ export function AuthProvider({ children }) {
               .eq('id', currentUser.id)
               .maybeSingle()
 
-            if (profile) {
+            const oauthRole = localStorage.getItem('oauth_role')
+            if (oauthRole) {
+              localStorage.removeItem('oauth_role')
+              const fullName =
+                currentUser.user_metadata?.full_name ||
+                currentUser.user_metadata?.name ||
+                'User'
+
+              // Upsert to profiles to ensure it exists and has the correct role
+              const { error: upsertError } = await supabase
+                .from('profiles')
+                .upsert({
+                  id: currentUser.id,
+                  email: currentUser.email,
+                  full_name: fullName,
+                  role: oauthRole,
+                })
+
+              if (upsertError) {
+                console.error('Error updating/inserting profile with oauthRole:', upsertError)
+              }
+
+              // Sync to Supabase auth metadata to instantly trigger context update
+              await supabase.auth.updateUser({
+                data: { role: oauthRole }
+              })
+
+              currentUser.user_metadata = {
+                ...currentUser.user_metadata,
+                full_name: fullName,
+                role: oauthRole,
+              }
+            } else if (profile) {
               // Merge DB profile data into user metadata.
               // KEY FIX: don't overwrite a valid existing role with null —
               // the profile row may exist (from signUp upsert) before the user
@@ -42,8 +74,6 @@ export function AuthProvider({ children }) {
               }
             } else if (event === 'SIGNED_IN') {
               // New OAuth/Email user — create their profile
-              const oauthRole = localStorage.getItem('oauth_role') || currentUser.user_metadata?.role || null
-              localStorage.removeItem('oauth_role')
               const fullName =
                 currentUser.user_metadata?.full_name ||
                 currentUser.user_metadata?.name ||
@@ -55,7 +85,7 @@ export function AuthProvider({ children }) {
                   id: currentUser.id,
                   email: currentUser.email,
                   full_name: fullName,
-                  role: oauthRole,
+                  role: null,
                 })
 
               if (insertError) {
@@ -65,7 +95,7 @@ export function AuthProvider({ children }) {
               currentUser.user_metadata = {
                 ...currentUser.user_metadata,
                 full_name: fullName,
-                role: oauthRole,
+                role: null,
               }
             }
 
