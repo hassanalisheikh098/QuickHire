@@ -108,7 +108,11 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     setError(null)
     try {
-      localStorage.setItem('oauth_role', role)
+      if (mode === 'signup') {
+        localStorage.setItem('oauth_role', role)
+      } else {
+        localStorage.removeItem('oauth_role')
+      }
       const { error } = await signInWithGoogle()
       if (error) throw error
     } catch (err) {
@@ -203,26 +207,7 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Role selector for Google OAuth sign in since Google doesn't pass roles */}
-          {mode === 'login' && (
-            <div className="mb-6">
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">I am logging in as a:</label>
-              <div className="flex gap-2 p-1 bg-card-dark rounded-xl border border-border-dark">
-                {['recruiter', 'candidate'].map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRole(r)}
-                    className={`flex-1 py-2 rounded-lg text-xs font-bold capitalize transition-all ${
-                      role === r ? 'bg-primary text-background-dark' : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (
