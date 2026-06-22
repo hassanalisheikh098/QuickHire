@@ -201,7 +201,7 @@ export default function CandidateProfile() {
             <div className="bg-card-dark border border-border-dark rounded-2xl p-6 space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Experience</span>
-                <span className="text-white font-medium">8+ Years</span>
+                <span className="text-white font-medium">2+ Years</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Availability</span>
