@@ -123,7 +123,7 @@ export default function Navbar({ activePage }) {
           )}
           
           {/* Notification bell dropdown */}
-          <div ref={dropdownRef} className="relative">
+          <div ref={dropdownRef} className="lg:relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
               className="relative text-slate-400 hover:text-white transition-colors flex items-center justify-center"
@@ -133,7 +133,7 @@ export default function Navbar({ activePage }) {
             </button>
             
             {showNotifications && (
-              <div className="absolute right-0 mt-3 w-80 bg-card-dark border border-border-dark rounded-xl shadow-2xl p-4 z-50 space-y-3 animate-stepEnter">
+              <div className="absolute top-16 left-6 right-6 lg:left-auto lg:right-0 lg:top-12 lg:w-80 bg-card-dark border border-border-dark rounded-xl shadow-2xl p-4 z-50 space-y-3 step-enter">
                 <div className="flex items-center justify-between border-b border-border-dark pb-2">
                   <span className="text-xs font-bold text-white uppercase tracking-wider">Notifications</span>
                   <span className="text-[10px] text-primary font-bold hover:underline cursor-pointer">Mark all read</span>
