@@ -6,7 +6,10 @@ export default function Navbar({ activePage }) {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const [showNotifications, setShowNotifications] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+
   const dropdownRef = useRef(null)
+  const navContainerRef = useRef(null)
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -22,15 +25,40 @@ export default function Navbar({ activePage }) {
     }
   }, [showNotifications])
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (navContainerRef.current && !navContainerRef.current.contains(event.target)) {
+        setIsMenuOpen(false)
+      }
+    }
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isMenuOpen])
+
   const handleSignOut = async () => {
     await signOut()
     navigate('/')
   }
 
   return (
-    <div className="sticky top-4 left-0 right-0 z-50 px-6 max-w-5xl mx-auto w-full">
+    <div ref={navContainerRef} className="sticky top-4 left-0 right-0 z-50 px-6 max-w-5xl mx-auto w-full">
       <header className="w-full bg-slate-950/40 backdrop-blur-xl border border-border-dark shadow-2xl rounded-full px-6 md:px-8 py-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-4 md:gap-10">
+          {/* Hamburger Menu for Mobile */}
+          {user && (
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="lg:hidden text-slate-400 hover:text-white flex items-center justify-center p-1"
+              aria-label="Toggle menu"
+            >
+              <span className="material-symbols-outlined text-2xl">{isMenuOpen ? 'close' : 'menu'}</span>
+            </button>
+          )}
+
           <Link to="/" className="flex items-center gap-1">
             <span className="text-xl font-black tracking-tight text-white">Quick</span>
             <span className="text-xl font-black tracking-tight text-primary">Hire</span>
@@ -170,6 +198,88 @@ export default function Navbar({ activePage }) {
           )}
         </div>
       </header>
+
+      {/* Mobile Menu Dropdown */}
+      {isMenuOpen && user && (
+        <div className="absolute top-16 left-6 right-6 bg-card-dark/95 backdrop-blur-md border border-border-dark rounded-2xl shadow-2xl p-4 lg:hidden z-50 step-enter">
+          <nav className="flex flex-col gap-2">
+            {user.user_metadata?.role === 'candidate' ? (
+              <>
+                <Link
+                  to="/candidates"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activePage === 'browse' ? 'bg-primary/10 text-primary font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <span className="material-symbols-outlined text-lg">group</span>
+                  <span className="text-sm">Browse Talent</span>
+                </Link>
+                <Link
+                  to={`/candidates/${user.id}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activePage === 'profile' ? 'bg-primary/10 text-primary font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <span className="material-symbols-outlined text-lg">person</span>
+                  <span className="text-sm">My Profile</span>
+                </Link>
+                <Link
+                  to="/onboarding"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activePage === 'onboarding' ? 'bg-primary/10 text-primary font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <span className="material-symbols-outlined text-lg">upload_file</span>
+                  <span className="text-sm">Update Resume</span>
+                </Link>
+              </>
+            ) : user.user_metadata?.role === 'recruiter' ? (
+              <>
+                <Link
+                  to="/candidates"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activePage === 'browse' ? 'bg-primary/10 text-primary font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <span className="material-symbols-outlined text-lg">group</span>
+                  <span className="text-sm">Browse Talent</span>
+                </Link>
+                <Link
+                  to="/search"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activePage === 'search' ? 'bg-primary/10 text-primary font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <span className="material-symbols-outlined text-lg">manage_search</span>
+                  <span className="text-sm">AI Search</span>
+                </Link>
+                <Link
+                  to="/dashboard"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activePage === 'dashboard' ? 'bg-primary/10 text-primary font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                >
+                  <span className="material-symbols-outlined text-lg">bookmark</span>
+                  <span className="text-sm">Dashboard</span>
+                </Link>
+              </>
+            ) : null}
+            
+            <hr className="border-border-dark my-1" />
+            
+            <Link
+              to="/messages"
+              onClick={() => setIsMenuOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activePage === 'messages' ? 'bg-primary/10 text-primary font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+            >
+              <span className="material-symbols-outlined text-lg">chat_bubble</span>
+              <span className="text-sm">Messages</span>
+            </Link>
+            <Link
+              to="/settings"
+              onClick={() => setIsMenuOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activePage === 'settings' ? 'bg-primary/10 text-primary font-bold' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+            >
+              <span className="material-symbols-outlined text-lg">settings</span>
+              <span className="text-sm">Settings</span>
+            </Link>
+          </nav>
+        </div>
+      )}
     </div>
   )
 }
