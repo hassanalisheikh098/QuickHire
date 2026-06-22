@@ -10,6 +10,7 @@ import CandidateProfile from './pages/CandidateProfile'
 import RecruiterDashboard from './pages/RecruiterDashboard'
 import MessagesPage from './pages/MessagesPage'
 import SettingsPage from './pages/SettingsPage'
+import BetaBanner from './components/BetaBanner'
 
 // Shown while Supabase restores the session on page reload (~200ms window)
 function AppLoader() {
@@ -83,59 +84,62 @@ export default function App() {
   if (loading) return <AppLoader />
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/auth" element={<AuthPage />} />
+    <>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
 
-      {/* Login required, no role check (user may not have a role yet) */}
-      <Route path="/select-role" element={
-        <ProtectedRoute loginOnly>
-          <SelectRolePage />
-        </ProtectedRoute>
-      } />
+        {/* Login required, no role check (user may not have a role yet) */}
+        <Route path="/select-role" element={
+          <ProtectedRoute loginOnly>
+            <SelectRolePage />
+          </ProtectedRoute>
+        } />
 
-      {/* Recruiter-only routes */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute requiredRole="recruiter">
-          <RecruiterDashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/search" element={
-        <ProtectedRoute requiredRole="recruiter">
-          <AISearchPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/candidates" element={
-        <ProtectedRoute>
-          <CandidateDiscovery />
-        </ProtectedRoute>
-      } />
+        {/* Recruiter-only routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute requiredRole="recruiter">
+            <RecruiterDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/search" element={
+          <ProtectedRoute requiredRole="recruiter">
+            <AISearchPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/candidates" element={
+          <ProtectedRoute>
+            <CandidateDiscovery />
+          </ProtectedRoute>
+        } />
 
-      {/* Candidate profile — special guard (recruiters: any, candidates: own only) */}
-      <Route path="/candidates/:id" element={<CandidateProfileGuard />} />
+        {/* Candidate profile — special guard (recruiters: any, candidates: own only) */}
+        <Route path="/candidates/:id" element={<CandidateProfileGuard />} />
 
-      {/* Candidate-only routes */}
-      <Route path="/onboarding" element={
-        <ProtectedRoute requiredRole="candidate">
-          <OnboardingPage />
-        </ProtectedRoute>
-      } />
+        {/* Candidate-only routes */}
+        <Route path="/onboarding" element={
+          <ProtectedRoute requiredRole="candidate">
+            <OnboardingPage />
+          </ProtectedRoute>
+        } />
 
-      {/* Both roles — just requires login + role */}
-      <Route path="/messages" element={
-        <ProtectedRoute>
-          <MessagesPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/settings" element={
-        <ProtectedRoute>
-          <SettingsPage />
-        </ProtectedRoute>
-      } />
+        {/* Both roles — just requires login + role */}
+        <Route path="/messages" element={
+          <ProtectedRoute>
+            <MessagesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute>
+            <SettingsPage />
+          </ProtectedRoute>
+        } />
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <BetaBanner />
+    </>
   )
 }
 
