@@ -61,21 +61,14 @@ function ProtectedRoute({ children, requiredRole, loginOnly = false }) {
 
 /**
  * Guard for /candidates/:id
- * - Recruiters can view any candidate profile
- * - Candidates can only view their own profile
+ * - Recruiters and candidates can view any candidate profile
  */
 function CandidateProfileGuard() {
   const { user } = useAuth()
-  const { id } = useParams()
   const role = user?.user_metadata?.role || null
 
   if (!user) return <Navigate to="/auth" replace />
   if (!role) return <Navigate to="/select-role" replace />
-
-  // Candidates can only view their own profile
-  if (role === 'candidate' && id !== user.id) {
-    return <Navigate to={`/candidates/${user.id}`} replace />
-  }
 
   return <CandidateProfile />
 }
@@ -114,7 +107,7 @@ export default function App() {
         </ProtectedRoute>
       } />
       <Route path="/candidates" element={
-        <ProtectedRoute requiredRole="recruiter">
+        <ProtectedRoute>
           <CandidateDiscovery />
         </ProtectedRoute>
       } />

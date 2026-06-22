@@ -9,13 +9,6 @@ const recruiterNavItems = [
   { to: '/settings', icon: 'settings', label: 'Settings', key: 'settings' },
 ]
 
-const candidateNavItems = [
-  { to: '/dashboard', icon: 'dashboard', label: 'My Dashboard', key: 'saved' },
-  { to: '/onboarding', icon: 'upload_file', label: 'Update Resume', key: 'onboarding' },
-  { to: '/messages', icon: 'chat_bubble', label: 'Messages', key: 'messages' },
-  { to: '/settings', icon: 'settings', label: 'Settings', key: 'settings' },
-]
-
 export default function Sidebar({ active, isOpen, onClose }) {
   const { signOut, user } = useAuth()
   const navigate = useNavigate()
@@ -26,6 +19,14 @@ export default function Sidebar({ active, isOpen, onClose }) {
   }
 
   const userRole = user?.user_metadata?.role || null
+
+  const candidateNavItems = [
+    { to: `/candidates/${user?.id}`, icon: 'person', label: 'My Profile', key: 'profile' },
+    { to: '/candidates', icon: 'group', label: 'Browse Talent', key: 'browse' },
+    { to: '/onboarding', icon: 'upload_file', label: 'Update Resume', key: 'onboarding' },
+    { to: '/messages', icon: 'chat_bubble', label: 'Messages', key: 'messages' },
+    { to: '/settings', icon: 'settings', label: 'Settings', key: 'settings' },
+  ]
 
   const neutralNavItems = [
     { to: '/messages', icon: 'chat_bubble', label: 'Messages', key: 'messages' },

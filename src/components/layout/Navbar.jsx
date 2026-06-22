@@ -39,6 +39,12 @@ export default function Navbar({ activePage }) {
             {user && user.user_metadata?.role === 'candidate' ? (
               <>
                 <Link
+                  to="/candidates"
+                  className={`text-sm font-medium transition-colors ${activePage === 'browse' ? 'text-white border-b-2 border-primary pb-1' : 'text-slate-400 hover:text-white'}`}
+                >
+                  Browse Talent
+                </Link>
+                <Link
                   to={`/candidates/${user.id}`}
                   className={`text-sm font-medium transition-colors ${activePage === 'profile' ? 'text-white border-b-2 border-primary pb-1' : 'text-slate-400 hover:text-white'}`}
                 >

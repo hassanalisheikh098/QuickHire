@@ -13,6 +13,7 @@ const SORT_OPTIONS = ['AI Score ↓', 'AI Score ↑', 'Name A–Z']
 export default function CandidateDiscovery() {
   const { showToast } = useToast()
   const { user } = useAuth()
+  const userRole = user?.user_metadata?.role || null
   const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -201,7 +202,7 @@ export default function CandidateDiscovery() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12 step-enter">
             {paginated.map((candidate) => (
-              <CandidateCard key={candidate.id} candidate={candidate} onSave={handleSave} saved={savedIds.has(candidate.id)} />
+              <CandidateCard key={candidate.id} candidate={candidate} onSave={userRole === 'recruiter' ? handleSave : null} saved={savedIds.has(candidate.id)} />
             ))}
           </div>
         )}
