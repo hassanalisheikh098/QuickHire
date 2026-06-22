@@ -54,6 +54,28 @@ export default function SelectRolePage() {
   const selectRole = async (role) => {
     setLoading(role)
     try {
+      // Guard: re-fetch current role from DB to prevent overwrites
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (existingProfile?.role) {
+        showToast('Role already assigned')
+        if (existingProfile.role === 'candidate') {
+          const { data: candidate } = await supabase
+            .from('candidates')
+            .select('id')
+            .eq('id', user.id)
+            .maybeSingle()
+          navigate(candidate ? `/candidates/${user.id}` : '/onboarding')
+        } else {
+          navigate('/dashboard')
+        }
+        return
+      }
+
       // 1. Update database profile
       const { error } = await supabase
         .from('profiles')

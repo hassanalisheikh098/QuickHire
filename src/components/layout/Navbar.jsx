@@ -51,7 +51,7 @@ export default function Navbar({ activePage }) {
                   Update Resume
                 </Link>
               </>
-            ) : (
+            ) : user && user.user_metadata?.role === 'recruiter' ? (
               <>
                 <Link
                   to="/candidates"
@@ -72,11 +72,11 @@ export default function Navbar({ activePage }) {
                   Dashboard
                 </Link>
               </>
-            )}
+            ) : null}
           </nav>
         </div>
         <div className="flex items-center gap-6">
-          {(!user || user.user_metadata?.role !== 'candidate') && (
+          {user && user.user_metadata?.role === 'recruiter' && (
             <div className="relative hidden sm:block">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
               <input

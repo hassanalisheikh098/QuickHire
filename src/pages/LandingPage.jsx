@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Home, Zap, Layers, Users } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 const menuItems = [
   { icon: <Home className="h-4 w-4" />, label: "Home", href: "#", gradient: "radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(37,99,235,0.06) 50%, rgba(29,78,216,0) 100%)", iconColor: "group-hover:text-blue-500" },
@@ -58,6 +59,9 @@ const testimonials = [
 ]
 
 export default function LandingPage() {
+  const { user, signOut } = useAuth()
+  const role = user?.user_metadata?.role || null
+
   return (
     <div className="bg-background-dark text-slate-100 min-h-screen selection:bg-primary/30">
       {/* Navbar */}
@@ -141,15 +145,34 @@ export default function LandingPage() {
 
           {/* Action buttons */}
           <div className="flex items-center gap-4 flex-shrink-0">
-            <Link to="/auth" className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">
-              Login
-            </Link>
-            <Link
-              to="/auth?mode=signup"
-              className="bg-primary text-background-dark px-5 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all animate-glow"
-            >
-              Get Started
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  to={role === 'candidate' ? `/candidates/${user.id}` : role === 'recruiter' ? '/dashboard' : '/select-role'}
+                  className="bg-primary text-background-dark px-5 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all"
+                >
+                  {role === 'candidate' ? 'My Profile' : role === 'recruiter' ? 'Dashboard' : 'Get Started'}
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth" className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">
+                  Login
+                </Link>
+                <Link
+                  to="/auth?mode=signup"
+                  className="bg-primary text-background-dark px-5 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all animate-glow"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </nav>
       </div>
@@ -178,13 +201,25 @@ export default function LandingPage() {
               AI-powered talent discovery with a modern tech aesthetic. Experience the future of recruitment through deep learning and intuitive search.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
-              <Link to="/dashboard" className="group relative bg-primary text-background-dark px-10 py-5 rounded-2xl font-bold text-lg button-glow hover:scale-105 transition-all w-full sm:w-auto">
-                I'm a Recruiter
-                <span className="absolute inset-0 rounded-2xl border-2 border-white/20 pointer-events-none" />
-              </Link>
-              <Link to="/onboarding" className="px-10 py-5 rounded-2xl font-bold text-lg text-white glass-card hover:bg-white/5 transition-all w-full sm:w-auto">
-                I'm a Candidate
-              </Link>
+              {user ? (
+                <Link
+                  to={role === 'candidate' ? `/candidates/${user.id}` : role === 'recruiter' ? '/dashboard' : '/select-role'}
+                  className="group relative bg-primary text-background-dark px-10 py-5 rounded-2xl font-bold text-lg button-glow hover:scale-105 transition-all w-full sm:w-auto text-center"
+                >
+                  {role === 'candidate' ? 'View My Profile' : role === 'recruiter' ? 'Go to Dashboard' : 'Complete Setup'}
+                  <span className="absolute inset-0 rounded-2xl border-2 border-white/20 pointer-events-none" />
+                </Link>
+              ) : (
+                <>
+                  <Link to="/dashboard" className="group relative bg-primary text-background-dark px-10 py-5 rounded-2xl font-bold text-lg button-glow hover:scale-105 transition-all w-full sm:w-auto">
+                    I'm a Recruiter
+                    <span className="absolute inset-0 rounded-2xl border-2 border-white/20 pointer-events-none" />
+                  </Link>
+                  <Link to="/onboarding" className="px-10 py-5 rounded-2xl font-bold text-lg text-white glass-card hover:bg-white/5 transition-all w-full sm:w-auto">
+                    I'm a Candidate
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           <div className="absolute top-1/3 left-10 opacity-20 hidden lg:block">

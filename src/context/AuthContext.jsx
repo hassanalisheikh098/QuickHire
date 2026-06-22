@@ -124,7 +124,7 @@ export function AuthProvider({ children }) {
       options: {
         data: {
           full_name: metadata.full_name,
-          role: metadata.role || 'recruiter',
+          role: metadata.role || null,
         }
       }
     })
@@ -137,7 +137,7 @@ export function AuthProvider({ children }) {
           id: data.user.id,
           email: email,
           full_name: metadata.full_name,
-          role: metadata.role || 'recruiter',
+          role: metadata.role || null,
         })
       if (profileError) console.error('Error creating profile in signUp:', profileError)
     }

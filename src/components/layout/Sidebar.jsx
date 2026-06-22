@@ -25,8 +25,18 @@ export default function Sidebar({ active, isOpen, onClose }) {
     navigate('/')
   }
 
-  const userRole = user?.user_metadata?.role || 'recruiter'
-  const navItems = userRole === 'candidate' ? candidateNavItems : recruiterNavItems
+  const userRole = user?.user_metadata?.role || null
+
+  const neutralNavItems = [
+    { to: '/messages', icon: 'chat_bubble', label: 'Messages', key: 'messages' },
+    { to: '/settings', icon: 'settings', label: 'Settings', key: 'settings' },
+  ]
+
+  const navItems = userRole === 'candidate'
+    ? candidateNavItems
+    : userRole === 'recruiter'
+      ? recruiterNavItems
+      : neutralNavItems
 
   return (
     <>
@@ -52,7 +62,7 @@ export default function Sidebar({ active, isOpen, onClose }) {
                   <span className="text-base font-black tracking-tight text-primary">Hire</span>
                 </div>
                 <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">
-                  {userRole === 'candidate' ? 'Talent Space' : 'AI Discovery'}
+                  {userRole === 'candidate' ? 'Talent Space' : userRole === 'recruiter' ? 'AI Discovery' : 'QuickHire'}
                 </p>
               </div>
             </Link>
