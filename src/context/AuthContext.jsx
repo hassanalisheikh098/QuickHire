@@ -38,6 +38,9 @@ export function AuthProvider({ children }) {
                 currentUser.user_metadata?.name ||
                 'User'
 
+              // Guard: If profile already exists and has an assigned role, preserve it
+              const finalRole = profile?.role || oauthRole
+
               // Upsert to profiles to ensure it exists and has the correct role
               const { error: upsertError } = await supabase
                 .from('profiles')
@@ -45,7 +48,7 @@ export function AuthProvider({ children }) {
                   id: currentUser.id,
                   email: currentUser.email,
                   full_name: fullName,
-                  role: oauthRole,
+                  role: finalRole,
                 })
 
               if (upsertError) {
@@ -54,13 +57,13 @@ export function AuthProvider({ children }) {
 
               // Sync to Supabase auth metadata to instantly trigger context update
               await supabase.auth.updateUser({
-                data: { role: oauthRole }
+                data: { role: finalRole }
               })
 
               currentUser.user_metadata = {
                 ...currentUser.user_metadata,
                 full_name: fullName,
-                role: oauthRole,
+                role: finalRole,
               }
             } else if (profile) {
               // Merge DB profile data into user metadata.
@@ -118,6 +121,21 @@ export function AuthProvider({ children }) {
   }, [])
 
   const signUp = async (email, password, metadata = {}) => {
+    // Optional check: if email already exists in public profiles and has a role, reject early
+    try {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (existingProfile?.role) {
+        return { data: null, error: { message: "An account with this email already exists." } }
+      }
+    } catch (e) {
+      console.warn("Pre-signup profile check failed (likely due to RLS policies):", e)
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -130,6 +148,15 @@ export function AuthProvider({ children }) {
     })
 
     if (!error && data?.user) {
+      // Fetch profile to see if it exists (in case of race conditions or existing profile with no role)
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle()
+
+      const roleToSave = currentProfile?.role || metadata.role || null
+
       // Create a profile record immediately to bypass triggers wait
       const { error: profileError } = await supabase
         .from('profiles')
@@ -137,7 +164,7 @@ export function AuthProvider({ children }) {
           id: data.user.id,
           email: email,
           full_name: metadata.full_name,
-          role: metadata.role || null,
+          role: roleToSave,
         })
       if (profileError) console.error('Error creating profile in signUp:', profileError)
     }
