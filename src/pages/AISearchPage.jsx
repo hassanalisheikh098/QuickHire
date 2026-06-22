@@ -27,7 +27,7 @@ function ThinkingAnimation() {
         <div className="absolute -inset-6 rounded-full border border-indigo-500/10 animate-ping" style={{ animationDelay: '0.5s' }} />
       </div>
       <div className="space-y-2 text-center">
-        <p className="text-white font-semibold text-lg">Grok AI is analyzing your query</p>
+        <p className="text-white font-semibold text-lg">QuickHire AI is analyzing your query</p>
         <p className="text-slate-500 text-sm">Semantically searching across all candidates for best matches...</p>
       </div>
       <div className="flex gap-2">
@@ -50,7 +50,7 @@ function AISummaryCard({ summary, queryInterpretation, suggestions, onSuggestion
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-white font-bold text-sm">Grok AI Insight</h3>
+            <h3 className="text-white font-bold text-sm">QuickHire AI Insight</h3>
             <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full grok-gradient text-white">AI</span>
           </div>
           {queryInterpretation && (
@@ -185,10 +185,10 @@ export default function AISearchPage() {
       setUsingFallback(true)
 
       if (err.message === 'GROK_API_KEY_MISSING') {
-        showToast('Grok API key not configured — using keyword search')
+        showToast('QuickHire AI API key not configured — using keyword search')
       } else {
         console.error('[AISearch] Full error:', err)
-        showToast(`Grok error: ${err.message.slice(0, 120)}`)
+        showToast(`QuickHire AI error: ${err.message.slice(0, 120)}`)
       }
     }
 
@@ -268,10 +268,10 @@ export default function AISearchPage() {
   }
 
   return (
-    <div className="bg-background-dark min-h-screen text-slate-100 flex">
+    <div className="bg-background-dark min-h-screen text-slate-100 flex overflow-x-hidden">
       <Sidebar active="search" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="border-b border-border-dark px-6 md:px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40 gap-4">
+      <div className="flex-1 flex flex-col lg:overflow-hidden min-w-0">
+        <header className="border-b border-border-dark px-4 sm:px-6 md:px-8 py-4 sm:py-5 flex flex-wrap items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40 gap-3 sm:gap-4">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -280,15 +280,15 @@ export default function AISearchPage() {
               <span className="material-symbols-outlined text-2xl">menu</span>
             </button>
             <div>
-              <h1 className="text-xl font-bold text-white flex items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
                 AI Talent Search
-                <span className="text-xs font-medium px-2 py-0.5 rounded-md grok-gradient text-white">Grok</span>
+                <span className="text-xs font-medium px-2 py-0.5 rounded-md grok-gradient text-white">QuickHire AI</span>
               </h1>
               <p className="text-slate-500 text-sm hidden sm:block">
-                Powered by Grok AI · Natural language semantic search · {candidates.length.toLocaleString()} candidates indexed
+                Powered by QuickHire AI · Natural language semantic search · {candidates.length.toLocaleString()} candidates indexed
               </p>
               <p className="text-slate-500 text-xs sm:hidden">
-                Grok AI · {candidates.length.toLocaleString()} candidates
+                QuickHire AI · {candidates.length.toLocaleString()} candidates
               </p>
             </div>
           </div>
@@ -306,17 +306,17 @@ export default function AISearchPage() {
               }`} />
             </span>
             <span className={`text-xs font-bold ${isGrokConfigured ? 'text-primary' : 'text-yellow-500'}`}>
-              {isGrokConfigured ? 'Grok AI Active' : 'Keyword Mode'}
+              {isGrokConfigured ? 'QuickHire AI Active' : 'Keyword Mode'}
             </span>
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-6 md:px-8 py-8">
-            <form onSubmit={handleSearchSubmit} className="mb-10">
+        <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8">
+            <form onSubmit={handleSearchSubmit} className="mb-8 sm:mb-10">
               <div className="relative group">
                 <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                <div className="relative flex items-center gap-4 bg-card-dark border border-border-dark group-focus-within:border-primary rounded-2xl px-5 py-4 transition-all">
+                <div className="relative flex items-center gap-2 sm:gap-4 bg-card-dark border border-border-dark group-focus-within:border-primary rounded-xl sm:rounded-2xl px-3 sm:px-5 py-3 sm:py-4 transition-all">
                   <span className="material-symbols-outlined text-slate-400 text-2xl flex-shrink-0">manage_search</span>
                   <input
                     ref={inputRef}
@@ -333,18 +333,18 @@ export default function AISearchPage() {
                   <button
                     type="submit"
                     disabled={!query.trim() || thinking}
-                    className="px-6 py-2.5 grok-gradient text-white rounded-xl font-bold text-sm hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+                    className="px-3 sm:px-6 py-2 sm:py-2.5 grok-gradient text-white rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 sm:gap-2 shadow-lg flex-shrink-0"
                   >
                     <span className="material-symbols-outlined text-lg">auto_awesome</span>
-                    {thinking ? 'Searching...' : 'Search'}
+                    <span className="hidden sm:inline">{thinking ? 'Searching...' : 'Search'}</span>
                   </button>
                 </div>
               </div>
-              <div className="flex items-center gap-3 mt-3 ml-2">
-                <p className="text-xs text-slate-600">Try: "Backend engineers with Rust experience" · "ML engineers at startups in NY"</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-2 sm:mt-3 ml-1 sm:ml-2">
+                <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed">Try: "Backend engineers with Rust" · "ML engineers in NY"</p>
                 {!isGrokConfigured && (
-                  <span className="text-[10px] text-yellow-500/80 bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
-                    ⚠ Grok API key not set — using keyword fallback
+                  <span className="text-[10px] text-yellow-500/80 bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20 self-start">
+                    ⚠ API key not set — keyword fallback
                   </span>
                 )}
               </div>
@@ -353,13 +353,13 @@ export default function AISearchPage() {
             {thinking && <ThinkingAnimation />}
 
             {!thinking && !searched && (
-              <div className="text-center py-20 space-y-4">
-                <div className="w-24 h-24 mx-auto rounded-2xl grok-gradient flex items-center justify-center shadow-2xl shadow-primary/20">
-                  <span className="material-symbols-outlined text-white text-5xl">manage_search</span>
+              <div className="text-center py-12 sm:py-20 space-y-4 px-2">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-2xl grok-gradient flex items-center justify-center shadow-2xl shadow-primary/20">
+                  <span className="material-symbols-outlined text-white text-4xl sm:text-5xl">manage_search</span>
                 </div>
-                <h2 className="text-2xl font-bold text-white mt-6">Ask anything about talent</h2>
-                <p className="text-slate-500 max-w-md mx-auto">
-                  Grok AI understands natural language. Describe the engineer you're looking for in your own words — skills, experience, company background, anything.
+                <h2 className="text-xl sm:text-2xl font-bold text-white mt-4 sm:mt-6">Ask anything about talent</h2>
+                <p className="text-slate-500 max-w-md mx-auto text-sm sm:text-base">
+                  QuickHire AI understands natural language. Describe the engineer you're looking for — skills, experience, company background, anything.
                 </p>
                 <div className="flex flex-wrap justify-center gap-2 pt-4">
                   {['Senior React engineer', 'ML engineer Python', 'DevOps Kubernetes expert', 'iOS Swift developer'].map((s) => (
@@ -373,7 +373,7 @@ export default function AISearchPage() {
                   <div className="w-5 h-5 rounded grok-gradient flex items-center justify-center">
                     <span className="material-symbols-outlined text-white text-xs">bolt</span>
                   </div>
-                  <span className="text-xs text-slate-400">Powered by <span className="grok-gradient-text font-bold">Grok AI</span> · xAI</span>
+                  <span className="text-xs text-slate-400">Powered by <span className="grok-gradient-text font-bold">QuickHire AI</span></span>
                 </div>
               </div>
             )}
@@ -404,7 +404,7 @@ export default function AISearchPage() {
                     }`}>
                       {usingFallback 
                         ? `⚡ Keyword fallback · ${results.length} matches`
-                        : `✨ Grok AI · ${results.length} semantic matches`
+                        : `✨ QuickHire AI · ${results.length} semantic matches`
                       }
                     </span>
                   </div>
@@ -419,7 +419,7 @@ export default function AISearchPage() {
                     <p className="text-slate-600 text-sm max-w-sm mx-auto">Try broadening your search terms or using different keywords.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     {results.map((candidate) => (
                       <CandidateCard key={candidate.id} candidate={candidate} onSave={handleSave} saved={savedIds.has(candidate.id)} />
                     ))}
@@ -454,7 +454,7 @@ export default function AISearchPage() {
                 <div className="w-6 h-6 rounded-md grok-gradient flex items-center justify-center">
                   <span className="material-symbols-outlined text-white text-xs">bolt</span>
                 </div>
-                <span className="text-xs font-bold text-white">Grok AI Status</span>
+                <span className="text-xs font-bold text-white">QuickHire AI Status</span>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

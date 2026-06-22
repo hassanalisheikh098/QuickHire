@@ -196,7 +196,7 @@ ${resumeText}`
       // Parse the error body if possible for a cleaner message
       const errBody = await response.json().catch(() => ({}))
       const errorMsg = errBody?.error?.message || errBody?.error || response.statusText
-      throw new Error(`${isGroq ? 'Groq' : 'Grok'} API error ${response.status}: ${errorMsg}`)
+      throw new Error(`QuickHire AI error ${response.status}: ${errorMsg}`)
     }
 
     const result = await response.json()
@@ -378,7 +378,7 @@ ${resumeText}`
             <div className="max-w-md mx-auto space-y-4 text-left border-t border-border-dark pt-6">
               {[
                 { step: 1, label: "Extracting resume text contents..." },
-                { step: 2, label: "Running Grok AI parser models..." },
+                { step: 2, label: "Running QuickHire AI parser models..." },
                 { step: 3, label: "Saving results & updating dashboard..." }
               ].map((s) => (
                 <div key={s.step} className="flex items-center gap-3">
@@ -395,7 +395,7 @@ ${resumeText}`
             <div className="space-y-2 text-center md:text-left">
               <h1 className="text-4xl font-extrabold text-white tracking-tight">Setup Your Profile Instantly</h1>
               <p className="text-slate-400 text-sm">
-                Drop your resume and let Grok extract your skills, compute your AI rating, and generate your profile.
+                Drop your resume and let QuickHire AI extract your skills, compute your AI rating, and generate your profile.
               </p>
             </div>
 
