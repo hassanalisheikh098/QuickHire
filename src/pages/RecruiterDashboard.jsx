@@ -13,6 +13,7 @@ export default function RecruiterDashboard() {
   const [history, setHistory] = useState([])
   const [candidateProfile, setCandidateProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,20 +102,29 @@ export default function RecruiterDashboard() {
   if (isCandidate) {
     return (
       <div className="bg-background-dark min-h-screen text-slate-100 flex">
-        <Sidebar active="saved" />
+        <Sidebar active="saved" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <div className="flex-1 overflow-y-auto">
           {/* Header */}
-          <header className="border-b border-border-dark px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40">
-            <div>
-              <h1 className="text-xl font-bold text-white">
-                {user ? `Welcome back, ${user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Candidate'} 👋` : 'Candidate Dashboard'}
-              </h1>
-              <p className="text-slate-500 text-sm">Manage your profile, resume, and discover opportunities.</p>
+          <header className="border-b border-border-dark px-6 md:px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40 gap-4">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden text-slate-400 hover:text-white flex-shrink-0"
+              >
+                <span className="material-symbols-outlined text-2xl">menu</span>
+              </button>
+              <div>
+                <h1 className="text-xl font-bold text-white">
+                  {user ? `Welcome back, ${user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Candidate'} 👋` : 'Candidate Dashboard'}
+                </h1>
+                <p className="text-slate-500 text-sm hidden sm:block">Manage your profile, resume, and discover opportunities.</p>
+              </div>
             </div>
             {candidateProfile && (
-              <Link to={`/candidates/${user.id}`} className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark rounded-xl font-bold text-sm hover:scale-105 transition-all">
+              <Link to={`/candidates/${user.id}`} className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark rounded-xl font-bold text-sm hover:scale-105 transition-all flex-shrink-0">
                 <span className="material-symbols-outlined text-lg">person</span>
-                View Public Profile
+                <span className="hidden sm:inline">View Public Profile</span>
+                <span className="sm:hidden">Profile</span>
               </Link>
             )}
           </header>
@@ -224,19 +234,28 @@ export default function RecruiterDashboard() {
 
   return (
     <div className="bg-background-dark min-h-screen text-slate-100 flex">
-      <Sidebar active="saved" />
+      <Sidebar active="saved" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="flex-1 overflow-y-auto">
         {/* Header */}
-        <header className="border-b border-border-dark px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40">
-          <div>
-            <h1 className="text-xl font-bold text-white">
-              {user ? `Welcome back, ${user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Recruiter'} 👋` : 'Recruiter Dashboard'}
-            </h1>
-            <p className="text-slate-500 text-sm">Here's what's happening with your talent pipeline today.</p>
+        <header className="border-b border-border-dark px-6 md:px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40 gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden text-slate-400 hover:text-white flex-shrink-0"
+            >
+              <span className="material-symbols-outlined text-2xl">menu</span>
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                {user ? `Welcome back, ${user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'Recruiter'} 👋` : 'Recruiter Dashboard'}
+              </h1>
+              <p className="text-slate-500 text-sm hidden sm:block">Here's what's happening with your talent pipeline today.</p>
+            </div>
           </div>
-          <Link to="/search" className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark rounded-xl font-bold text-sm hover:scale-105 transition-all">
+          <Link to="/search" className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark rounded-xl font-bold text-sm hover:scale-105 transition-all flex-shrink-0">
             <span className="material-symbols-outlined text-lg">manage_search</span>
-            New AI Search
+            <span className="hidden sm:inline">New AI Search</span>
+            <span className="sm:hidden">Search</span>
           </Link>
         </header>
 

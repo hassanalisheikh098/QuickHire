@@ -16,7 +16,7 @@ const candidateNavItems = [
   { to: '/settings', icon: 'settings', label: 'Settings', key: 'settings' },
 ]
 
-export default function Sidebar({ active }) {
+export default function Sidebar({ active, isOpen, onClose }) {
   const { signOut, user } = useAuth()
   const navigate = useNavigate()
 
@@ -29,22 +29,40 @@ export default function Sidebar({ active }) {
   const navItems = userRole === 'candidate' ? candidateNavItems : recruiterNavItems
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-sidebar-dark border-r border-border-dark flex flex-col h-full">
-      <div className="p-6">
-        <Link to="/" className="flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-background-dark font-black text-sm leading-none">Q</span>
+    <>
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-sidebar-dark border-r border-border-dark flex flex-col h-full transform transition-transform duration-300 lg:static lg:translate-x-0 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-8">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-background-dark font-black text-sm leading-none">Q</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-0.5">
+                  <span className="text-base font-black tracking-tight text-white">Quick</span>
+                  <span className="text-base font-black tracking-tight text-primary">Hire</span>
+                </div>
+                <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">
+                  {userRole === 'candidate' ? 'Talent Space' : 'AI Discovery'}
+                </p>
+              </div>
+            </Link>
+            <button 
+              onClick={onClose}
+              className="lg:hidden text-slate-500 hover:text-white flex items-center justify-center p-1"
+            >
+              <span className="material-symbols-outlined text-xl">close</span>
+            </button>
           </div>
-          <div>
-            <div className="flex items-center gap-0.5">
-              <span className="text-base font-black tracking-tight text-white">Quick</span>
-              <span className="text-base font-black tracking-tight text-primary">Hire</span>
-            </div>
-            <p className="text-slate-500 text-xs font-medium uppercase tracking-widest">
-              {userRole === 'candidate' ? 'Talent Space' : 'AI Discovery'}
-            </p>
-          </div>
-        </Link>
 
         <nav className="space-y-1">
           {navItems.map((item) => (
@@ -111,5 +129,6 @@ export default function Sidebar({ active }) {
         )}
       </div>
     </aside>
+    </>
   )
 }

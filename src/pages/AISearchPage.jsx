@@ -78,6 +78,7 @@ function AISummaryCard({ summary, queryInterpretation, suggestions, onSuggestion
 
 /* ───── Main Page ───── */
 export default function AISearchPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const { showToast } = useToast()
   const { user } = useAuth()
   const [candidates, setCandidates] = useState([])
@@ -268,17 +269,28 @@ export default function AISearchPage() {
 
   return (
     <div className="bg-background-dark min-h-screen text-slate-100 flex">
-      <Sidebar active="search" />
+      <Sidebar active="search" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="border-b border-border-dark px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40">
-          <div>
-            <h1 className="text-xl font-bold text-white flex items-center gap-2">
-              AI Talent Search
-              <span className="text-xs font-medium px-2 py-0.5 rounded-md grok-gradient text-white">Grok</span>
-            </h1>
-            <p className="text-slate-500 text-sm">
-              Powered by Grok AI · Natural language semantic search · {candidates.length.toLocaleString()} candidates indexed
-            </p>
+        <header className="border-b border-border-dark px-6 md:px-8 py-5 flex items-center justify-between bg-background-dark/80 backdrop-blur-md sticky top-0 z-40 gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden text-slate-400 hover:text-white flex-shrink-0"
+            >
+              <span className="material-symbols-outlined text-2xl">menu</span>
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                AI Talent Search
+                <span className="text-xs font-medium px-2 py-0.5 rounded-md grok-gradient text-white">Grok</span>
+              </h1>
+              <p className="text-slate-500 text-sm hidden sm:block">
+                Powered by Grok AI · Natural language semantic search · {candidates.length.toLocaleString()} candidates indexed
+              </p>
+              <p className="text-slate-500 text-xs sm:hidden">
+                Grok AI · {candidates.length.toLocaleString()} candidates
+              </p>
+            </div>
           </div>
           <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-full ${
             isGrokConfigured 
@@ -299,8 +311,8 @@ export default function AISearchPage() {
           </div>
         </header>
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1 overflow-y-auto px-8 py-8">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          <div className="flex-1 overflow-y-auto px-6 md:px-8 py-8">
             <form onSubmit={handleSearchSubmit} className="mb-10">
               <div className="relative group">
                 <div className="absolute inset-0 bg-primary/5 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
@@ -418,7 +430,7 @@ export default function AISearchPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="w-72 border-l border-border-dark bg-sidebar-dark flex-shrink-0 overflow-y-auto p-6">
+          <div className="hidden lg:block w-72 border-l border-border-dark bg-sidebar-dark flex-shrink-0 overflow-y-auto p-6">
             <h3 className="text-xs uppercase tracking-widest font-bold text-slate-500 mb-4">Recent Searches</h3>
             <div className="space-y-2">
               {history.map((h) => (

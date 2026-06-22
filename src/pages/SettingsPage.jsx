@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Sidebar from '../components/layout/Sidebar'
 
 export default function SettingsPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [profilePublic, setProfilePublic] = useState(true)
   const [allowContact, setAllowContact] = useState(true)
 
@@ -35,9 +36,15 @@ export default function SettingsPage() {
 
   return (
     <div className="bg-background-dark min-h-screen text-slate-100 flex">
-      <Sidebar active="settings" />
+      <Sidebar active="settings" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="flex-1 overflow-y-auto">
-        <header className="border-b border-border-dark px-8 py-5 flex items-center bg-background-dark/80 backdrop-blur-md sticky top-0 z-40">
+        <header className="border-b border-border-dark px-6 md:px-8 py-5 flex items-center gap-4 bg-background-dark/80 backdrop-blur-md sticky top-0 z-40">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="lg:hidden text-slate-400 hover:text-white flex-shrink-0"
+          >
+            <span className="material-symbols-outlined text-2xl">menu</span>
+          </button>
           <div>
             <h1 className="text-xl font-bold text-white">Settings</h1>
             <p className="text-slate-500 text-sm">Manage your profile, preferences, and billing</p>
