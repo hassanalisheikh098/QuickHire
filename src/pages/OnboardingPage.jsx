@@ -406,36 +406,6 @@ ${resumeText}`
               </div>
             )}
 
-            {/* Parser Config */}
-            <div className="bg-card-dark border border-border-dark rounded-2xl p-6 space-y-4 animate-stepEnter">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-xl">settings</span>
-                  <span className="text-sm font-bold text-white uppercase tracking-wider">Parser Config</span>
-                </div>
-                {grokApiKey ? (
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={useDemoMode}
-                      onChange={(e) => setUseDemoMode(e.target.checked)}
-                      className="accent-primary h-4 w-4 rounded border-slate-700 bg-background-dark"
-                    />
-                    <span className="text-xs text-slate-300 font-semibold">Force Demo Mode</span>
-                  </label>
-                ) : (
-                  <span className="text-xs text-amber-500 font-bold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-                    Demo Mode Active (.env key missing)
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-slate-500">
-                {grokApiKey
-                  ? "Parser will use the active API key configured in your project's .env file."
-                  : "To use real AI parsing, add VITE_GROK_API_KEY to your local .env file and restart the server."}
-              </p>
-            </div>
-
             {/* Drag & Drop Uploader */}
             {!showTextArea ? (
               <div
