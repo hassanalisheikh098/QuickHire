@@ -41,7 +41,7 @@ export default function BetaBanner() {
   if (!isVisible || !timeLeft) return null
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92vw] max-w-md bg-card-dark border border-border-dark rounded-2xl shadow-2xl p-5 step-enter">
+    <div className="fixed bottom-6 left-0 right-0 mx-auto z-50 w-[92vw] max-w-md bg-card-dark border border-border-dark rounded-2xl shadow-2xl p-5 step-enter">
       {/* Dismiss Button */}
       <button 
         onClick={handleDismiss} 
