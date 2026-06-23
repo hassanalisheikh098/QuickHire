@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 export default function AuthPage() {
   const [searchParams] = useSearchParams()
   const [mode, setMode] = useState(searchParams.get('mode') === 'signup' ? 'signup' : 'login')
-  const [role, setRole] = useState('recruiter')
+  const [role, setRole] = useState('candidate')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
