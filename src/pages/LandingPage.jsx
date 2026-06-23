@@ -64,6 +64,7 @@ export default function LandingPage() {
   const { user, signOut } = useAuth()
   const role = user?.user_metadata?.role || null
   const [candidateCount, setCandidateCount] = useState(null)
+  const [hasProfile, setHasProfile] = useState(false)
 
   useEffect(() => {
     const fetchCandidateCount = async () => {
@@ -77,6 +78,20 @@ export default function LandingPage() {
     }
     fetchCandidateCount()
   }, [])
+
+  // Check if the logged-in candidate has completed their profile (uploaded resume)
+  useEffect(() => {
+    if (!user || role !== 'candidate') return
+    const checkProfile = async () => {
+      const { data } = await supabase
+        .from('candidates')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      setHasProfile(!!data)
+    }
+    checkProfile()
+  }, [user, role])
 
   return (
     <div className="bg-background-dark text-slate-100 min-h-screen selection:bg-primary/30">
@@ -164,10 +179,10 @@ export default function LandingPage() {
             {user ? (
               <>
                 <Link
-                  to={role === 'candidate' ? `/candidates/${user.id}` : role === 'recruiter' ? '/dashboard' : '/select-role'}
+                  to={role === 'candidate' ? (hasProfile ? `/candidates/${user.id}` : '/onboarding') : role === 'recruiter' ? '/dashboard' : '/select-role'}
                   className="bg-primary text-background-dark px-5 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all"
                 >
-                  {role === 'candidate' ? 'My Profile' : role === 'recruiter' ? 'Dashboard' : 'Get Started'}
+                  {role === 'candidate' ? (hasProfile ? 'My Profile' : 'Complete Profile') : role === 'recruiter' ? 'Dashboard' : 'Get Started'}
                 </Link>
                 <button
                   onClick={signOut}
@@ -219,10 +234,10 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
               {user ? (
                 <Link
-                  to={role === 'candidate' ? `/candidates/${user.id}` : role === 'recruiter' ? '/dashboard' : '/select-role'}
+                  to={role === 'candidate' ? (hasProfile ? `/candidates/${user.id}` : '/onboarding') : role === 'recruiter' ? '/dashboard' : '/select-role'}
                   className="group relative bg-primary text-background-dark px-10 py-5 rounded-2xl font-bold text-lg button-glow hover:scale-105 transition-all w-full sm:w-auto text-center"
                 >
-                  {role === 'candidate' ? 'View My Profile' : role === 'recruiter' ? 'Go to Dashboard' : 'Complete Setup'}
+                  {role === 'candidate' ? (hasProfile ? 'View My Profile' : 'Complete Your Profile') : role === 'recruiter' ? 'Go to Dashboard' : 'Complete Setup'}
                   <span className="absolute inset-0 rounded-2xl border-2 border-white/20 pointer-events-none" />
                 </Link>
               ) : (
