@@ -21,7 +21,11 @@ export default function RecruiterDashboard() {
       if (!user) return
       setLoading(true)
 
-      const userRole = user.user_metadata?.role || 'recruiter'
+      // Fix #4 (RecruiterDashboard): Removed the `|| 'recruiter'` fallback.
+      // If role is null here, it means ProtectedRoute should have intercepted and
+      // sent the user to /select-role. Using a fallback would silently treat a
+      // role-less user as a recruiter, bypassing the selection gate.
+      const userRole = user.user_metadata?.role
       if (userRole === 'candidate') {
         const { data: profile } = await supabase
           .from('candidates')
@@ -105,7 +109,7 @@ export default function RecruiterDashboard() {
     { label: 'Match Rate', icon: 'verified', color: 'text-amber-400', bg: 'bg-amber-400/10', value: '94%' },
   ]
 
-  const userRole = user?.user_metadata?.role || 'recruiter'
+  const userRole = user?.user_metadata?.role
   const isCandidate = userRole === 'candidate'
 
   if (isCandidate) {

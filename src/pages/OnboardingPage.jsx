@@ -352,6 +352,10 @@ ${resumeText}`
         .eq('id', user.id)
 
       showToast("Resume parsed and profile updated successfully! ✓")
+      // Fix #7: setLoading(false) must be called on the success path too.
+      // Previously it was only called in the catch block, leaving the spinner
+      // running indefinitely after a successful parse + save + navigate.
+      setLoading(false)
       navigate(`/candidates/${user.id}`)
 
     } catch (err) {

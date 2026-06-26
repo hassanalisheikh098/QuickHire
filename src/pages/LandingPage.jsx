@@ -83,10 +83,12 @@ export default function LandingPage() {
   useEffect(() => {
     if (!user || role !== 'candidate') return
     const checkProfile = async () => {
+      // Fix #6: OnboardingPage saves candidates with `id: user.id` (not user_id),
+      // so the lookup must match that column.
       const { data } = await supabase
         .from('candidates')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .maybeSingle()
       setHasProfile(!!data)
     }
@@ -242,11 +244,13 @@ export default function LandingPage() {
                 </Link>
               ) : (
                 <>
-                  <Link to="/dashboard" className="group relative bg-primary text-background-dark px-10 py-5 rounded-2xl font-bold text-lg button-glow hover:scale-105 transition-all w-full sm:w-auto">
+                  {/* Fix #5: Route unauthenticated users through auth instead of directly
+                     to role-gated pages. Both buttons go to the signup flow. */}
+                  <Link to="/auth?mode=signup" className="group relative bg-primary text-background-dark px-10 py-5 rounded-2xl font-bold text-lg button-glow hover:scale-105 transition-all w-full sm:w-auto">
                     I'm a Recruiter
                     <span className="absolute inset-0 rounded-2xl border-2 border-white/20 pointer-events-none" />
                   </Link>
-                  <Link to="/onboarding" className="px-10 py-5 rounded-2xl font-bold text-lg text-white glass-card hover:bg-white/5 transition-all w-full sm:w-auto">
+                  <Link to="/auth?mode=signup" className="px-10 py-5 rounded-2xl font-bold text-lg text-white glass-card hover:bg-white/5 transition-all w-full sm:w-auto">
                     I'm a Candidate
                   </Link>
                 </>

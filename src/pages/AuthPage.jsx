@@ -6,7 +6,9 @@ import { supabase } from '../lib/supabase'
 export default function AuthPage() {
   const [searchParams] = useSearchParams()
   const [mode, setMode] = useState(searchParams.get('mode') === 'signup' ? 'signup' : 'login')
-  const [role, setRole] = useState('candidate')
+  // Fix #1: Start with null — no role is selected until the user explicitly clicks a toggle.
+  // This prevents the silent default-role bug where any signup path would inherit 'candidate'.
+  const [role, setRole] = useState(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -86,6 +88,12 @@ export default function AuthPage() {
 
     // Client-side validation for signup — catches issues before the API call
     if (mode === 'signup') {
+      // Fix #2c: Block submission if the user never clicked the role toggle.
+      // This is the primary guard that prevents a role from being assigned by default.
+      if (!role) {
+        setError("Please select Recruiter or Candidate to continue")
+        return
+      }
       if (!fullName.trim()) {
         setError("Please enter your full name")
         return
@@ -107,6 +115,7 @@ export default function AuthPage() {
         // while the async checkRoleAndRedirect() resolves.
         setLoading(false)
       } else {
+        // role is guaranteed non-null here due to the guard above
         const { error } = await signUp(email, password, { full_name: fullName, role })
         if (error) throw error
         setMessage("Account created! You can now sign in.")
@@ -120,15 +129,28 @@ export default function AuthPage() {
 
   const handleGoogleSignIn = async () => {
     setError(null)
-    try {
-      if (mode === 'signup') {
-        localStorage.setItem('oauth_role', role)
-      } else {
-        localStorage.removeItem('oauth_role')
+
+    // Fix #2d / Fix #3: Only write oauth_role when the user explicitly clicked a toggle.
+    // If role is null (never touched), block the signup path — the user must pick a role
+    // first, or they will land on /select-role after OAuth anyway (which is the safe path).
+    if (mode === 'signup') {
+      if (!role) {
+        setError("Please select Recruiter or Candidate to continue")
+        return
       }
+      // role is explicitly 'recruiter' or 'candidate' here — safe to persist
+      localStorage.setItem('oauth_role', role)
+    } else {
+      // Login mode: always clear any stale role so we never accidentally assign one
+      localStorage.removeItem('oauth_role')
+    }
+
+    try {
       const { error } = await signInWithGoogle()
       if (error) throw error
     } catch (err) {
+      // If the OAuth redirect fails, clean up the localStorage key we may have set
+      localStorage.removeItem('oauth_role')
       setError(err.message || "An error occurred during Google sign-in.")
     }
   }
@@ -195,7 +217,13 @@ export default function AuthPage() {
             <p className="text-slate-400">
               {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
               <button
-                onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null) }}
+                onClick={() => {
+                  // Fix #2b: Reset role to null whenever the user switches modes so
+                  // re-entering signup always starts with no selection.
+                  setMode(mode === 'login' ? 'signup' : 'login')
+                  setRole(null)
+                  setError(null)
+                }}
                 className="text-primary font-semibold hover:underline"
               >
                 {mode === 'login' ? 'Sign up' : 'Sign in'}
@@ -204,14 +232,23 @@ export default function AuthPage() {
           </div>
 
           {/* Role toggle — only on signup */}
+          {/* Fix #2a: When role === null neither button is highlighted, giving a clear visual
+               indication that the user MUST make an explicit selection before proceeding. */}
           {mode === 'signup' && (
-            <div className="flex gap-2 p-1 bg-card-dark rounded-xl border border-border-dark mb-6">
+            <div className={`flex gap-2 p-1 bg-card-dark rounded-xl border transition-colors mb-6 ${
+              role === null ? 'border-slate-600' : 'border-border-dark'
+            }`}>
               {['recruiter', 'candidate'].map((r) => (
                 <button
                   key={r}
-                  onClick={() => setRole(r)}
+                  type="button"
+                  onClick={() => { setRole(r); setError(null) }}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-bold capitalize transition-all ${
-                    role === r ? 'bg-primary text-background-dark' : 'text-slate-400 hover:text-white'
+                    role === r
+                      ? 'bg-primary text-background-dark'
+                      : role === null
+                        ? 'text-slate-500 hover:text-white hover:bg-white/5'
+                        : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   I'm a {r}

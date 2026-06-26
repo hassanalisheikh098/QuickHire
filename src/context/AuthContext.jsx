@@ -30,15 +30,24 @@ export function AuthProvider({ children }) {
               .eq('id', currentUser.id)
               .maybeSingle()
 
-            const oauthRole = localStorage.getItem('oauth_role')
+            // Fix #4: Enum guard — only honor oauth_role if it is exactly one of the two
+            // valid role strings. Any other value (including 'candidate' from an old default,
+            // an empty string, or a tampered value) is discarded so the user falls through
+            // to /select-role instead of receiving a silently wrong role assignment.
+            const VALID_ROLES = ['recruiter', 'candidate']
+            const rawOauthRole = localStorage.getItem('oauth_role')
+            const oauthRole = VALID_ROLES.includes(rawOauthRole) ? rawOauthRole : null
+            // Always clear the key regardless of whether the value was valid
+            if (rawOauthRole) localStorage.removeItem('oauth_role')
+
             if (oauthRole) {
-              localStorage.removeItem('oauth_role')
               const fullName =
                 currentUser.user_metadata?.full_name ||
                 currentUser.user_metadata?.name ||
                 'User'
 
-              // Guard: If profile already exists and has an assigned role, preserve it
+              // Guard: If profile already exists and has an assigned role, preserve it.
+              // This prevents a repeat OAuth sign-in from overwriting an existing role.
               const finalRole = profile?.role || oauthRole
 
               // Upsert to profiles to ensure it exists and has the correct role
