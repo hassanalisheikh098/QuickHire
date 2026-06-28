@@ -29,12 +29,12 @@ export default function CandidateDiscovery() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
-      
+
       // Fetch candidates from Supabase
       const { data: candData, error: candError } = await supabase
         .from('candidates')
         .select('*')
-      
+
       if (candData) {
         setCandidates(candData)
       } else {
@@ -47,7 +47,7 @@ export default function CandidateDiscovery() {
           .from('saved_candidates')
           .select('candidate_id')
           .eq('recruiter_id', user.id)
-        
+
         if (savedData) {
           setSavedIds(new Set(savedData.map(item => item.candidate_id)))
         } else {
@@ -73,7 +73,7 @@ export default function CandidateDiscovery() {
         .delete()
         .eq('recruiter_id', user.id)
         .eq('candidate_id', candidate.id)
-      
+
       if (!error) {
         setSavedIds((prev) => {
           const next = new Set(prev)
@@ -91,7 +91,7 @@ export default function CandidateDiscovery() {
           recruiter_id: user.id,
           candidate_id: candidate.id
         })
-      
+
       if (!error) {
         setSavedIds((prev) => {
           const next = new Set(prev)
@@ -209,22 +209,42 @@ export default function CandidateDiscovery() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-6 pb-20">
+          <div className="flex items-center justify-center gap-2 pb-20">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-              className="flex items-center gap-2 px-6 py-2 border border-border-dark text-slate-400 hover:text-white hover:border-primary disabled:opacity-40 transition-all rounded-lg text-sm font-medium">
-              <span className="material-symbols-outlined text-lg">chevron_left</span>Previous
+              className="flex items-center gap-1 px-2 sm:px-4 py-2 border border-border-dark text-slate-400 hover:text-white hover:border-primary disabled:opacity-40 transition-all rounded-lg text-sm font-medium flex-shrink-0">
+              <span className="material-symbols-outlined text-lg">chevron_left</span>
+              <span className="hidden sm:inline">Previous</span>
             </button>
-            <div className="flex items-center gap-2">
-              {[...Array(totalPages)].map((_, i) => (
-                <button key={i} onClick={() => setPage(i + 1)}
-                  className={`w-8 h-8 flex items-center justify-center rounded-md text-sm ${page === i + 1 ? 'bg-primary text-background-dark font-bold' : 'text-slate-400 hover:text-white'}`}>
-                  {i + 1}
-                </button>
-              ))}
+            <div className="flex items-center gap-1">
+              {(() => {
+                const delta = 1
+                const pages = []
+                for (let i = 1; i <= totalPages; i++) {
+                  if (i === 1 || i === totalPages || (i >= page - delta && i <= page + delta)) {
+                    pages.push(i)
+                  }
+                }
+                const result = []
+                let prev = null
+                for (const p of pages) {
+                  if (prev && p - prev > 1) {
+                    result.push(<span key={`ellipsis-${p}`} className="w-8 h-8 flex items-center justify-center text-slate-600 text-sm">…</span>)
+                  }
+                  result.push(
+                    <button key={p} onClick={() => setPage(p)}
+                      className={`w-8 h-8 flex items-center justify-center rounded-md text-sm flex-shrink-0 ${page === p ? 'bg-primary text-background-dark font-bold' : 'text-slate-400 hover:text-white'}`}>
+                      {p}
+                    </button>
+                  )
+                  prev = p
+                }
+                return result
+              })()}
             </div>
             <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-              className="flex items-center gap-2 px-6 py-2 border border-border-dark text-slate-400 hover:text-white hover:border-primary disabled:opacity-40 transition-all rounded-lg text-sm font-medium">
-              Next<span className="material-symbols-outlined text-lg">chevron_right</span>
+              className="flex items-center gap-1 px-2 sm:px-4 py-2 border border-border-dark text-slate-400 hover:text-white hover:border-primary disabled:opacity-40 transition-all rounded-lg text-sm font-medium flex-shrink-0">
+              <span className="hidden sm:inline">Next</span>
+              <span className="material-symbols-outlined text-lg">chevron_right</span>
             </button>
           </div>
         )}
