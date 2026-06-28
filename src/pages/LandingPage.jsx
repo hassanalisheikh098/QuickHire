@@ -41,7 +41,6 @@ const sharedTransition = {
   duration: 0.5,
 }
 
-
 const features = [
   { icon: 'psychology', title: 'AI Scoring', desc: 'Advanced neural networks evaluate candidate fit based on multi-dimensional data points beyond the resume.' },
   { icon: 'manage_search', title: 'Natural Search', desc: 'Search for talent using conversational language. Just type what you need, our AI understands the nuance.' },
@@ -71,20 +70,14 @@ export default function LandingPage() {
       const { count, error } = await supabase
         .from('candidates')
         .select('*', { count: 'exact', head: true })
-
-      if (!error && count !== null) {
-        setCandidateCount(count)
-      }
+      if (!error && count !== null) setCandidateCount(count)
     }
     fetchCandidateCount()
   }, [])
 
-  // Check if the logged-in candidate has completed their profile (uploaded resume)
   useEffect(() => {
     if (!user || role !== 'candidate') return
     const checkProfile = async () => {
-      // Fix #6: OnboardingPage saves candidates with `id: user.id` (not user_id),
-      // so the lookup must match that column.
       const { data } = await supabase
         .from('candidates')
         .select('id')
@@ -98,21 +91,16 @@ export default function LandingPage() {
   return (
     <div className="bg-background-dark text-slate-100 min-h-screen selection:bg-primary/30">
       {/* Navbar */}
-      <div className="fixed top-4 left-0 right-0 z-50 px-6 max-w-5xl mx-auto">
-        <nav
-          className="w-full px-6 py-3.5 rounded-full
-          bg-slate-950/40 backdrop-blur-xl 
-          border border-border-dark 
-          shadow-2xl flex flex-row items-center justify-between gap-4"
-        >
+      <div className="fixed top-4 left-0 right-0 z-50 px-4 max-w-5xl mx-auto">
+        <nav className="w-full px-4 md:px-6 py-3.5 rounded-full bg-slate-950/40 backdrop-blur-xl border border-border-dark shadow-2xl flex flex-row items-center justify-between gap-2">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1 flex-shrink-0">
             <span className="text-xl font-black tracking-tight text-white">Quick</span>
             <span className="text-xl font-black tracking-tight text-primary">Hire</span>
           </Link>
 
-          {/* Hover Gradient Menu */}
-          <ul className="hidden md:flex items-center gap-1 md:gap-3 relative z-10">
+          {/* Animated menu — hidden on mobile */}
+          <ul className="hidden md:flex items-center gap-1 md:gap-2 relative z-10">
             {menuItems.map((item) => (
               <li key={item.label} className="relative">
                 <motion.div
@@ -121,54 +109,29 @@ export default function LandingPage() {
                   whileHover="hover"
                   initial="initial"
                 >
-                  {/* Per-item glow */}
                   <motion.div
                     className="absolute inset-0 z-0 pointer-events-none rounded-xl"
                     variants={glowVariants}
-                    style={{
-                      background: item.gradient,
-                      opacity: 0,
-                    }}
+                    style={{ background: item.gradient, opacity: 0 }}
                   />
-                  {/* Front-facing */}
                   <motion.a
                     href={item.href}
-                    className="flex items-center gap-2 
-                    px-4 py-2 relative z-10 
-                    bg-transparent text-slate-400 
-                    group-hover:text-white 
-                    transition-colors rounded-xl text-xs md:text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 relative z-10 bg-transparent text-slate-400 group-hover:text-white transition-colors rounded-xl text-sm font-medium"
                     variants={itemVariants}
                     transition={sharedTransition}
-                    style={{
-                      transformStyle: "preserve-3d",
-                      transformOrigin: "center bottom"
-                    }}
+                    style={{ transformStyle: "preserve-3d", transformOrigin: "center bottom" }}
                   >
-                    <span className={`transition-colors duration-300 ${item.iconColor}`}>
-                      {item.icon}
-                    </span>
+                    <span className={`transition-colors duration-300 ${item.iconColor}`}>{item.icon}</span>
                     <span className="font-semibold">{item.label}</span>
                   </motion.a>
-                  {/* Back-facing */}
                   <motion.a
                     href={item.href}
-                    className="flex items-center gap-2 
-                    px-4 py-2 absolute inset-0 z-10 
-                    bg-transparent text-slate-400 
-                    group-hover:text-white 
-                    transition-colors rounded-xl text-xs md:text-sm font-medium"
+                    className="flex items-center gap-2 px-3 py-2 absolute inset-0 z-10 bg-transparent text-slate-400 group-hover:text-white transition-colors rounded-xl text-sm font-medium"
                     variants={backVariants}
                     transition={sharedTransition}
-                    style={{
-                      transformStyle: "preserve-3d",
-                      transformOrigin: "center top",
-                      transform: "rotateX(90deg)"
-                    }}
+                    style={{ transformStyle: "preserve-3d", transformOrigin: "center top", transform: "rotateX(90deg)" }}
                   >
-                    <span className={`transition-colors duration-300 ${item.iconColor}`}>
-                      {item.icon}
-                    </span>
+                    <span className={`transition-colors duration-300 ${item.iconColor}`}>{item.icon}</span>
                     <span className="font-semibold">{item.label}</span>
                   </motion.a>
                 </motion.div>
@@ -177,18 +140,18 @@ export default function LandingPage() {
           </ul>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-4 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {user ? (
               <>
                 <Link
                   to={role === 'candidate' ? (hasProfile ? `/candidates/${user.id}` : '/onboarding') : role === 'recruiter' ? '/dashboard' : '/select-role'}
-                  className="bg-primary text-background-dark px-5 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all"
+                  className="bg-primary text-background-dark px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all whitespace-nowrap"
                 >
                   {role === 'candidate' ? (hasProfile ? 'My Profile' : 'Complete Profile') : role === 'recruiter' ? 'Dashboard' : 'Get Started'}
                 </Link>
                 <button
                   onClick={signOut}
-                  className="text-slate-400 hover:text-white transition-colors flex items-center justify-center p-2"
+                  className="text-slate-400 hover:text-white transition-colors flex items-center justify-center p-1.5 flex-shrink-0"
                   title="Sign out"
                 >
                   <span className="material-symbols-outlined text-xl">logout</span>
@@ -196,12 +159,12 @@ export default function LandingPage() {
               </>
             ) : (
               <>
-                <Link to="/auth" className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">
+                <Link to="/auth" className="hidden md:block px-3 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors whitespace-nowrap">
                   Login
                 </Link>
                 <Link
                   to="/auth?mode=signup"
-                  className="bg-primary text-background-dark px-5 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all animate-glow"
+                  className="bg-primary text-background-dark px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all animate-glow whitespace-nowrap"
                 >
                   Get Started
                 </Link>
@@ -245,8 +208,6 @@ export default function LandingPage() {
                 </Link>
               ) : (
                 <>
-                  {/* Fix #5: Route unauthenticated users through auth instead of directly
-                     to role-gated pages. Both buttons go to the signup flow. */}
                   <Link to="/auth?mode=signup" className="group relative bg-primary text-background-dark px-10 py-5 rounded-2xl font-bold text-lg button-glow hover:scale-105 transition-all w-full sm:w-auto">
                     I'm a Recruiter
                     <span className="absolute inset-0 rounded-2xl border-2 border-white/20 pointer-events-none" />
