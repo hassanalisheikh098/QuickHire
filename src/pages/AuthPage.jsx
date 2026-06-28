@@ -34,6 +34,11 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (user) {
+      // If the URL has an OAuth hash fragment (e.g. #access_token=...) we are
+      // still on the /auth page mid-callback. AuthCallbackPage handles this
+      // scenario; don't compete with it by navigating from here.
+      if (window.location.hash.includes('access_token')) return
+
       const checkRoleAndRedirect = async () => {
         // Fetch user profile from Supabase to check role
         const { data: profile } = await supabase

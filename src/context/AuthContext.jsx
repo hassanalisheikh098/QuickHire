@@ -193,7 +193,13 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth`
+        // Redirect to /auth/callback — a dedicated page that waits for
+        // AuthContext to finish processing oauth_role before navigating.
+        // Previously this pointed to /auth, which caused a race condition:
+        // AuthPage's redirect useEffect would read the profile before
+        // AuthContext's onAuthStateChange upsert had finished, find no role,
+        // and send every OAuth user to /select-role.
+        redirectTo: `${window.location.origin}/auth/callback`
       }
     })
     return { data, error }

@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import LandingPage from './pages/LandingPage'
 import AuthPage from './pages/AuthPage'
+import AuthCallbackPage from './pages/AuthCallbackPage'
 import SelectRolePage from './pages/SelectRolePage'
 import OnboardingPage from './pages/OnboardingPage'
 import AISearchPage from './pages/AISearchPage'
@@ -89,6 +90,11 @@ export default function App() {
         {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        {/* OAuth callback — Google redirects here after authentication.
+            This page waits for AuthContext to finish before navigating,
+            eliminating the race condition that previously caused all OAuth
+            users to lose their selected role. */}
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
         {/* Login required, no role check (user may not have a role yet) */}
         <Route path="/select-role" element={
