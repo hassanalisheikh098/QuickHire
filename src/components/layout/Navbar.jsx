@@ -136,35 +136,15 @@ export default function Navbar({ activePage }) {
               <div className="absolute top-16 left-6 right-6 lg:left-auto lg:right-0 lg:top-12 lg:w-80 bg-card-dark border border-border-dark rounded-xl shadow-2xl p-4 z-50 space-y-3 step-enter">
                 <div className="flex items-center justify-between border-b border-border-dark pb-2">
                   <span className="text-xs font-bold text-white uppercase tracking-wider">Notifications</span>
-                  <span className="text-[10px] text-primary font-bold hover:underline cursor-pointer">Mark all read</span>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-emerald-600 flex items-center justify-center text-background-dark font-bold text-xs flex-shrink-0">
-                      AR
-                    </div>
-                    <div>
-                      <p className="text-xs text-white"><span className="font-semibold text-primary">Alex Rivera</span> viewed your profile</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">2 hours ago</p>
-                    </div>
+                <div className="flex gap-3 p-2 rounded-lg">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-emerald-600 flex items-center justify-center text-background-dark font-bold text-xs flex-shrink-0">
+                    HS
                   </div>
-                  <div className="flex gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                      SJ
-                    </div>
-                    <div>
-                      <p className="text-xs text-white"><span className="font-semibold text-blue-400">New match:</span> Sarah Jenkins (96 AI)</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">5 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3 hover:bg-white/5 p-2 rounded-lg transition-colors cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                      MZ
-                    </div>
-                    <div>
-                      <p className="text-xs text-white"><span className="font-semibold text-purple-400">Message:</span> Michael Zhang replied</p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">1 day ago</p>
-                    </div>
+                  <div>
+                    <p className="text-xs text-white"><span className="font-semibold text-primary">Hassan Ali Sheikh</span> · Founder</p>
+                    <p className="text-xs text-slate-300 mt-1 leading-relaxed">Welcome to QuickHire! 🎉 We're glad to have you here. Explore talent, build your profile, and let AI do the heavy lifting.</p>
+                    <p className="text-[10px] text-slate-500 mt-1">From the founder</p>
                   </div>
                 </div>
               </div>
