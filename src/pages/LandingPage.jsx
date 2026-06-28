@@ -71,7 +71,7 @@ export default function LandingPage() {
       const { count, error } = await supabase
         .from('candidates')
         .select('*', { count: 'exact', head: true })
-      
+
       if (!error && count !== null) {
         setCandidateCount(count)
       }
@@ -188,9 +188,10 @@ export default function LandingPage() {
                 </Link>
                 <button
                   onClick={signOut}
-                  className="px-4 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors"
+                  className="text-slate-400 hover:text-white transition-colors flex items-center justify-center p-2"
+                  title="Sign out"
                 >
-                  Sign out
+                  <span className="material-symbols-outlined text-xl">logout</span>
                 </button>
               </>
             ) : (
@@ -309,7 +310,7 @@ export default function LandingPage() {
         <section className="max-w-7xl mx-auto px-6 py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-                { value: candidateCount !== null ? `${candidateCount}` : '...', label: 'Active Candidates', icon: 'group' },
+              { value: candidateCount !== null ? `${candidateCount}` : '...', label: 'Active Candidates', icon: 'group' },
               { value: '98%', label: 'AI Match Accuracy', icon: 'verified' },
               { value: '70%', label: 'Time Saved', icon: 'timer' },
               { value: '7', label: 'Companies Hiring', icon: 'business' },
