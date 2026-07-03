@@ -6,7 +6,7 @@ export default function BetaBanner() {
 
   // Target time: July 1, 2026 at 00:00 PKT (UTC+5)
   // equivalent to 2026-07-01T00:00:00+05:00
-  const targetTime = new Date('2026-07-01T00:00:00+05:00').getTime()
+  const targetTime = new Date('2026-08-01T00:00:00+05:00').getTime()
 
   useEffect(() => {
     if (!isVisible) return
@@ -43,8 +43,8 @@ export default function BetaBanner() {
   return (
     <div className="fixed bottom-6 left-0 right-0 mx-auto z-50 w-[92vw] max-w-md bg-card-dark border border-border-dark rounded-2xl shadow-2xl p-5 step-enter">
       {/* Dismiss Button */}
-      <button 
-        onClick={handleDismiss} 
+      <button
+        onClick={handleDismiss}
         className="absolute top-3 right-3 text-slate-400 hover:text-slate-200 transition-colors"
         aria-label="Dismiss banner"
       >
@@ -60,7 +60,7 @@ export default function BetaBanner() {
         {/* Text Details */}
         <div className="space-y-1 text-center">
           <h4 className="text-sm font-semibold text-slate-200 leading-snug">
-            QuickHire is free until 1st July 2026
+            QuickHire is free to explore for recruiters until 1st August 2026
           </h4>
           <p className="text-xs text-text-muted leading-relaxed">
             Pricing begins once the candidate bank hits 500 profiles
